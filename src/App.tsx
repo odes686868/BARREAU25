@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './components/Auth';
 import Settings from './components/Settings';
@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import ProgressTab from './components/ProgressTab';
 import TestsTab from './components/TestsTab';
 import ResultsTab from './components/ResultsTab';
+import { supabase } from './lib/supabase';
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
 
 function Dashboard({ isAuthenticated, setIsAuthenticated }: { 
@@ -40,6 +41,30 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Chargement...</div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>

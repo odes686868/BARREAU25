@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GraduationCap, ArrowLeft } from 'lucide-react';
+import { GraduationCap, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -15,6 +15,9 @@ export default function Auth({ onLogin }: AuthProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const validatePasswords = () => {
     if (password.length < 6) {
@@ -44,6 +47,7 @@ export default function Auth({ onLogin }: AuthProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
@@ -58,24 +62,25 @@ export default function Auth({ onLogin }: AuthProps) {
           throw new Error(getErrorMessage(error));
         }
         if (!data.user) throw new Error('Erreur lors de la connexion');
+
+        onLogin();
+        navigate('/app');
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              email_confirmed: true
-            }
-          }
         });
         if (error) {
           throw new Error(getErrorMessage(error));
         }
         if (!data.user) throw new Error('Erreur lors de l\'inscription');
+
+        setSuccess('Compte créé avec succès ! Redirection...');
+        setTimeout(() => {
+          onLogin();
+          navigate('/app');
+        }, 1500);
       }
-      
-      onLogin();
-      navigate('/app');
     } catch (err) {
       setError(err instanceof Error ? err.message : getErrorMessage(err));
     } finally {
@@ -114,11 +119,16 @@ export default function Auth({ onLogin }: AuthProps) {
       <div className="w-[600px] bg-white p-12 flex items-center">
         <div className="w-full max-w-md mx-auto">
           <h2 className="text-2xl font-bold mb-8">
-            {isLogin ? 'Connexion' : 'Inscription'}
+            {isLogin ? 'Connexion' : 'Créer un compte'}
           </h2>
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-50 text-green-600 p-3 rounded-lg mb-6">
+              {success}
             </div>
           )}
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -140,58 +150,78 @@ export default function Auth({ onLogin }: AuthProps) {
                 Mot de passe
               </label>
               <div className="relative">
-              <input
-                type="password"
-                className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
-                required
-              />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="w-full px-4 py-2 pr-10 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  minLength={6}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
               {!isLogin && (
                 <p className="mt-1 text-xs text-gray-500">
                   Minimum 6 caractères
                 </p>
               )}
-              </div>
             </div>
             {!isLogin && (
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Confirmer le mot de passe
                 </label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className="w-full px-4 py-2 pr-10 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors"
+              className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading
                 ? 'Chargement...'
                 : isLogin
                 ? 'Se connecter'
-                : "S'inscrire"}
+                : 'Créer mon compte'}
             </button>
           </form>
 
-          <div className="mt-8">
+          <div className="mt-8 text-center">
             <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-[#1e2c4f] hover:underline"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError(null);
+                setSuccess(null);
+              }}
+              className="text-[#1e2c4f] hover:underline font-medium"
             >
               {isLogin
-                ? "Pas encore de compte ? S'inscrire"
-                : 'Déjà un compte ? Se connecter'}
+                ? "Pas encore de compte ? Créer un compte"
+                : 'Vous avez déjà un compte ? Se connecter'}
             </button>
           </div>
 
