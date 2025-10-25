@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { categories } from '../data/categories';
+import { categories, exam1Categories, exam2Categories } from '../data/categories';
+import ExamSelector from './ExamSelector';
 
 interface QuizResult {
   id: string;
@@ -26,6 +27,7 @@ interface CategoryStats {
 export default function ResultsTab() {
   const [results, setResults] = useState<QuizResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedExamId, setSelectedExamId] = useState<number>(1);
 
   useEffect(() => {
     loadResults();
@@ -57,9 +59,11 @@ export default function ResultsTab() {
     { total: 0, correct: 0, incorrect: 0, unanswered: 0 }
   );
 
-  const categoryStats: CategoryStats[] = categories.map((category) => {
+  const examCategories = selectedExamId === 1 ? exam1Categories : exam2Categories;
+
+  const categoryStats: CategoryStats[] = examCategories.map((category) => {
     const categoryResults = results.filter(
-      (r) => r.category_id === category.id || (r.category_id === 0 && r.exam_id === 1)
+      (r) => r.category_id === category.id && r.exam_id === selectedExamId
     );
 
     const stats = categoryResults.reduce(
@@ -94,6 +98,10 @@ export default function ResultsTab() {
 
   return (
     <div className="space-y-8">
+      <ExamSelector
+        selectedExamId={selectedExamId}
+        onExamChange={setSelectedExamId}
+      />
       <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
         <h2 className="text-xl font-bold mb-4">Statistiques globales</h2>
         <div className="grid grid-cols-4 gap-4">

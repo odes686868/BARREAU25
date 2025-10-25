@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { categories } from '../data/categories';
+import { exam1Categories, exam2Categories } from '../data/categories';
+import ExamSelector from './ExamSelector';
 
 interface CategoryProgress {
   categoryId: number;
@@ -13,23 +14,25 @@ interface CategoryProgress {
 export default function ProgressTab() {
   const [progress, setProgress] = useState<CategoryProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedExamId, setSelectedExamId] = useState<number>(1);
 
   useEffect(() => {
     loadProgress();
-  }, []);
+  }, [selectedExamId]);
 
   const loadProgress = async () => {
     try {
       const { data: progressData, error } = await supabase
         .from('user_progress')
-        .select('question_id, status');
+        .select('question_id, status, category_id');
 
       if (error) throw error;
 
-      const categoryProgress = categories.map((category) => {
+      const examCategories = selectedExamId === 1 ? exam1Categories : exam2Categories;
+
+      const categoryProgress = examCategories.map((category) => {
         const categoryQuestions = progressData?.filter(
-          (p) => p.question_id.includes(`category_${category.id}`) ||
-                 p.question_id.includes(`examen1_${category.id - 7}`)
+          (p) => p.category_id === category.id
         ) || [];
 
         const correctAnswers = categoryQuestions.filter((p) => p.status === 'correct').length;
@@ -65,6 +68,10 @@ export default function ProgressTab() {
 
   return (
     <div className="space-y-8">
+      <ExamSelector
+        selectedExamId={selectedExamId}
+        onExamChange={setSelectedExamId}
+      />
       <div>
         <h2 className="text-2xl font-bold mb-6">Progression par catégorie</h2>
         <div className="grid gap-6">

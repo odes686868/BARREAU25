@@ -50,7 +50,7 @@ export async function getAvailableQuestions(examId: number, categoryId?: number)
 
       if (data && data.length > 0) {
         allQuestions = data.map(q => ({
-          id: q.id,
+          id: `${tableName}_${q.id}`,
           exam_id: examId,
           category_id: categoryId,
           question_text: q.question_text,
@@ -64,10 +64,11 @@ export async function getAvailableQuestions(examId: number, categoryId?: number)
     } else {
       if (examId === 1) {
         for (let catId = 1; catId <= 7; catId++) {
-          const { data } = await supabase.from(`category_${catId}`).select('*');
+          const tableName = `category_${catId}`;
+          const { data } = await supabase.from(tableName).select('*');
           if (data) {
             const mapped = data.map(q => ({
-              id: q.id,
+              id: `${tableName}_${q.id}`,
               exam_id: examId,
               category_id: catId,
               question_text: q.question_text,
@@ -82,11 +83,12 @@ export async function getAvailableQuestions(examId: number, categoryId?: number)
         }
       } else {
         for (let i = 1; i <= 12; i++) {
-          const { data } = await supabase.from(`examen1_${i}`).select('*');
+          const tableName = `examen1_${i}`;
+          const catId = 7 + i;
+          const { data } = await supabase.from(tableName).select('*');
           if (data) {
-            const catId = 7 + i;
             const mapped = data.map(q => ({
-              id: q.id,
+              id: `${tableName}_${q.id}`,
               exam_id: examId,
               category_id: catId,
               question_text: q.question_text,
@@ -122,10 +124,11 @@ export async function getAvailableQuestions(examId: number, categoryId?: number)
 
 export async function submitQuizAnswer(
   questionId: string,
-  status: 'correct' | 'incorrect' | 'unanswered'
+  status: 'correct' | 'incorrect' | 'unanswered',
+  categoryId: number
 ): Promise<void> {
   if (!supabase) return;
-  
+
   const user = await supabase.auth.getUser();
   if (!user.data.user?.id) return;
 
@@ -135,16 +138,16 @@ export async function submitQuizAnswer(
       .insert({
         user_id: user.data.user.id,
         question_id: questionId,
+        category_id: categoryId,
         status
       })
       .single();
 
     if (error) {
-      if (error.code === '23505') { // Unique violation
-        // Update existing record
+      if (error.code === '23505') {
         const { error: updateError } = await supabase
           .from('user_progress')
-          .update({ status })
+          .update({ status, category_id: categoryId })
           .eq('user_id', user.data.user.id)
           .eq('question_id', questionId);
 

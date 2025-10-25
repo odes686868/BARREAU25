@@ -1,7 +1,7 @@
 import { Clock, Brain } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getAvailableQuestions, submitQuizAnswer, saveQuizResult } from '../lib/quiz';
-import { getCategoriesByExam } from '../lib/exams';
+import { getCategoriesByExam } from '../data/categories';
 import ExamSelector from './ExamSelector';
 import type { Question, Category } from '../types';
 
@@ -26,8 +26,8 @@ export default function TestsTab() {
     loadCategories();
   }, [selectedExamId]);
 
-  const loadCategories = async () => {
-    const data = await getCategoriesByExam(selectedExamId);
+  const loadCategories = () => {
+    const data = getCategoriesByExam(selectedExamId);
     setCategories(data);
   };
 
@@ -57,7 +57,7 @@ export default function TestsTab() {
     const status = answer === 'skip' ? 'unanswered' :
       answer === currentQuestion.correct_answer ? 'correct' : 'incorrect';
 
-    await submitQuizAnswer(currentQuestion.id, status);
+    await submitQuizAnswer(currentQuestion.id, status, currentQuestion.category_id);
 
     setQuizState(prev => {
       if (!prev) return null;
@@ -77,17 +77,33 @@ export default function TestsTab() {
   const finishQuiz = async () => {
     if (!quizState) return;
 
-    const result = {
-      examId: quizState.examId,
-      categoryId: quizState.categoryId || 0,
-      totalQuestions: quizState.questions.length,
-      correctAnswers: Object.values(quizState.answers).filter(a => a === 'correct').length,
-      incorrectAnswers: Object.values(quizState.answers).filter(a => a === 'incorrect').length,
-      unanswered: Object.values(quizState.answers).filter(a => a === 'unanswered').length
-    };
+    const questionsByCategory: Record<number, { correct: number; incorrect: number; unanswered: number }> = {};
+
+    quizState.questions.forEach((question) => {
+      const categoryId = question.category_id;
+      if (!questionsByCategory[categoryId]) {
+        questionsByCategory[categoryId] = { correct: 0, incorrect: 0, unanswered: 0 };
+      }
+
+      const status = quizState.answers[question.id];
+      if (status === 'correct') questionsByCategory[categoryId].correct++;
+      else if (status === 'incorrect') questionsByCategory[categoryId].incorrect++;
+      else if (status === 'unanswered') questionsByCategory[categoryId].unanswered++;
+    });
 
     try {
-      await saveQuizResult(result);
+      for (const [categoryId, stats] of Object.entries(questionsByCategory)) {
+        const result = {
+          examId: quizState.examId,
+          categoryId: parseInt(categoryId),
+          totalQuestions: stats.correct + stats.incorrect + stats.unanswered,
+          correctAnswers: stats.correct,
+          incorrectAnswers: stats.incorrect,
+          unanswered: stats.unanswered
+        };
+        await saveQuizResult(result);
+      }
+
       setQuizState(null);
       setSelectedCategory(null);
     } catch (error) {
