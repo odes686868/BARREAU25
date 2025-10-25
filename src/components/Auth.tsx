@@ -10,6 +10,7 @@ interface AuthProps {
 export default function Auth({ onLogin }: AuthProps) {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -51,6 +52,32 @@ export default function Auth({ onLogin }: AuthProps) {
     }
 
     return message || 'Une erreur est survenue';
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) throw error;
+
+      setSuccess('Un email de réinitialisation a été envoyé. Vérifiez votre boîte de réception.');
+      setTimeout(() => {
+        setIsForgotPassword(false);
+        setIsLogin(true);
+      }, 3000);
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,7 +157,7 @@ export default function Auth({ onLogin }: AuthProps) {
       <div className="w-[600px] bg-white p-12 flex items-center">
         <div className="w-full max-w-md mx-auto">
           <h2 className="text-2xl font-bold mb-8">
-            {isLogin ? 'Connexion' : 'Créer un compte'}
+            {isForgotPassword ? 'Réinitialiser le mot de passe' : isLogin ? 'Connexion' : 'Créer un compte'}
           </h2>
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6">
@@ -142,7 +169,45 @@ export default function Auth({ onLogin }: AuthProps) {
               {success}
             </div>
           )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          {isForgotPassword ? (
+            <form className="space-y-6" onSubmit={handleForgotPassword}>
+              <p className="text-gray-600 mb-6">
+                Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+              </p>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Adresse courriel
+                </label>
+                <input
+                  type="email"
+                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
+                  placeholder="exemple@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Envoi...' : 'Envoyer le lien de réinitialisation'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setError(null);
+                  setSuccess(null);
+                }}
+                className="w-full text-[#1e2c4f] hover:underline font-medium"
+              >
+                Retour à la connexion
+              </button>
+            </form>
+          ) : (
+            <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium mb-2">
                 Adresse courriel
@@ -219,22 +284,41 @@ export default function Auth({ onLogin }: AuthProps) {
                 ? 'Se connecter'
                 : 'Créer mon compte'}
             </button>
-          </form>
 
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setError(null);
-                setSuccess(null);
-              }}
-              className="text-[#1e2c4f] hover:underline font-medium"
-            >
-              {isLogin
-                ? "Pas encore de compte ? Créer un compte"
-                : 'Vous avez déjà un compte ? Se connecter'}
-            </button>
-          </div>
+            {isLogin && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  className="text-sm text-[#1e2c4f] hover:underline"
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
+            )}
+          </form>
+          )}
+
+          {!isForgotPassword && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError(null);
+                  setSuccess(null);
+                }}
+                className="text-[#1e2c4f] hover:underline font-medium"
+              >
+                {isLogin
+                  ? "Pas encore de compte ? Créer un compte"
+                  : 'Vous avez déjà un compte ? Se connecter'}
+              </button>
+            </div>
+          )}
 
           <p className="mt-8 text-sm text-gray-500 text-center">
             En vous connectant, vous acceptez nos{' '}
