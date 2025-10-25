@@ -1,32 +1,47 @@
 import { Clock, Brain } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { getAvailableQuestions, submitQuizAnswer, saveQuizResult } from '../lib/quiz';
-import type { Question } from '../types';
+import { getCategoriesByExam } from '../lib/exams';
+import ExamSelector from './ExamSelector';
+import type { Question, Category } from '../types';
 
 interface QuizState {
   questions: Question[];
   currentQuestionIndex: number;
   answers: Record<string, 'correct' | 'incorrect' | 'unanswered'>;
+  examId: number;
   categoryId?: number;
 }
 
 export default function TestsTab() {
+  const [selectedExamId, setSelectedExamId] = useState<number>(1);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [quizState, setQuizState] = useState<QuizState | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
+  useEffect(() => {
+    loadCategories();
+  }, [selectedExamId]);
+
+  const loadCategories = async () => {
+    const data = await getCategoriesByExam(selectedExamId);
+    setCategories(data);
+  };
+
   const startQuiz = async (numQuestions: number, categoryId?: number) => {
     setLoading(true);
     try {
-      const questions = await getAvailableQuestions(categoryId);
+      const questions = await getAvailableQuestions(selectedExamId, categoryId);
       const selectedQuestions = questions.slice(0, numQuestions);
 
       setQuizState({
         questions: selectedQuestions,
         currentQuestionIndex: 0,
         answers: {},
+        examId: selectedExamId,
         categoryId
       });
     } catch (error) {
@@ -63,6 +78,7 @@ export default function TestsTab() {
     if (!quizState) return;
 
     const result = {
+      examId: quizState.examId,
       categoryId: quizState.categoryId || 0,
       totalQuestions: quizState.questions.length,
       correctAnswers: Object.values(quizState.answers).filter(a => a === 'correct').length,
@@ -200,6 +216,14 @@ export default function TestsTab() {
 
   return (
     <div className="space-y-8">
+      <ExamSelector
+        selectedExamId={selectedExamId}
+        onExamChange={(examId) => {
+          setSelectedExamId(examId);
+          setQuizState(null);
+          setSelectedCategory(null);
+        }}
+      />
       <h2 className="text-2xl font-bold mb-6">Tests disponibles</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[

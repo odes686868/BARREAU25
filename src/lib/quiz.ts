@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import type { Question } from '../types';
 
 export interface QuizResult {
+  examId: number;
   categoryId: number;
   totalQuestions: number;
   correctAnswers: number;
@@ -16,6 +17,7 @@ export async function saveQuizResult(result: QuizResult): Promise<void> {
     .from('quiz_results')
     .insert({
       user_id: (await supabase.auth.getUser()).data.user?.id,
+      exam_id: result.examId,
       category_id: result.categoryId,
       total_questions: result.totalQuestions,
       correct_answers: result.correctAnswers,
@@ -29,21 +31,17 @@ export async function saveQuizResult(result: QuizResult): Promise<void> {
   }
 }
 
-export async function getAvailableQuestions(categoryId?: number): Promise<Question[]> {
+export async function getAvailableQuestions(examId: number, categoryId?: number): Promise<Question[]> {
   if (!supabase) return [];
-  
+
   try {
-    let query;
+    let query = supabase
+      .from('questions')
+      .select('*')
+      .eq('exam_id', examId);
+
     if (categoryId) {
-      // If categoryId is provided, fetch from specific category table
-      query = supabase
-        .from(`category_${categoryId}`)
-        .select('*');
-    } else {
-      // If no categoryId, fetch from category_1 (default behavior for now)
-      query = supabase
-        .from('category_1')
-        .select('*');
+      query = query.eq('category_id', categoryId);
     }
 
     const { data: questions, error } = await query;
@@ -54,26 +52,12 @@ export async function getAvailableQuestions(categoryId?: number): Promise<Questi
     }
 
     if (!questions || questions.length === 0) {
-      console.log('No questions found');
+      console.log('No questions found for exam', examId, 'category', categoryId);
       return [];
     }
 
-    // Map the questions to match our Question interface
-    const mappedQuestions: Question[] = questions.map(q => ({
-      id: q.id,
-      category_id: categoryId || 1,
-      question_text: q.question_text,
-      correct_answer: q.correct_answer,
-      incorrect_answers: [
-        q['incorrect_answers/0'],
-        q['incorrect_answers/1'],
-        q['incorrect_answers/2']
-      ].filter(Boolean),
-      explanation: q.explanation || ''
-    }));
-
     // Shuffle the questions
-    const shuffled = [...mappedQuestions];
+    const shuffled = [...questions];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
