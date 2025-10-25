@@ -10,6 +10,7 @@ interface AuthProps {
 export default function Auth({ onLogin }: AuthProps) {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -53,6 +54,42 @@ export default function Auth({ onLogin }: AuthProps) {
     return message || 'Une erreur est survenue';
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      if (!email || !email.trim()) {
+        throw new Error('Veuillez entrer une adresse email');
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/forgot-password`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Une erreur est survenue');
+      }
+
+      setSuccess('✓ Si votre email existe, vous recevrez un lien de réinitialisation dans quelques instants. Vérifiez aussi vos courriers indésirables.');
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,15 +139,14 @@ export default function Auth({ onLogin }: AuthProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1e2c4f] to-[#2a3f6f] flex">
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="absolute top-6 left-6 flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-colors"
       >
         <ArrowLeft size={20} />
         <span>Retour à l'accueil</span>
       </Link>
 
-      {/* Left side - Hero */}
       <div className="flex-1 flex items-center justify-center p-8 text-white">
         <div className="max-w-xl">
           <div className="flex items-center space-x-3 mb-8">
@@ -127,11 +163,10 @@ export default function Auth({ onLogin }: AuthProps) {
         </div>
       </div>
 
-      {/* Right side - Auth form */}
       <div className="w-[600px] bg-white p-12 flex items-center">
         <div className="w-full max-w-md mx-auto">
           <h2 className="text-2xl font-bold mb-8">
-            {isLogin ? 'Connexion' : 'Créer un compte'}
+            {isForgotPassword ? 'Réinitialiser le mot de passe' : isLogin ? 'Connexion' : 'Créer un compte'}
           </h2>
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6">
@@ -143,7 +178,49 @@ export default function Auth({ onLogin }: AuthProps) {
               {success}
             </div>
           )}
-          {
+          {isForgotPassword ? (
+            <form className="space-y-6" onSubmit={handleForgotPassword}>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  <strong>Important :</strong> Vous recevrez un email avec un lien sécurisé pour réinitialiser votre mot de passe. Le lien expire après 15 minutes.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Adresse courriel
+                </label>
+                <input
+                  type="email"
+                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
+                  placeholder="exemple@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading || !!success}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || !!success}
+                className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
+              </button>
+              {!success && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  className="w-full text-[#1e2c4f] hover:underline font-medium"
+                >
+                  Retour à la connexion
+                </button>
+              )}
+            </form>
+          ) : (
             <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -224,15 +301,23 @@ export default function Auth({ onLogin }: AuthProps) {
 
             {isLogin && (
               <div className="text-center">
-                <p className="text-sm text-gray-500">
-                  Mot de passe oublié ? Changez-le dans Paramètres après connexion.
-                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  className="text-sm text-[#1e2c4f] hover:underline"
+                >
+                  Mot de passe oublié ?
+                </button>
               </div>
             )}
           </form>
-          }
+          )}
 
-          {(
+          {!isForgotPassword && (
             <div className="mt-8 text-center">
               <button
                 onClick={() => {
