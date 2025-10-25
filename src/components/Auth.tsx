@@ -61,20 +61,28 @@ export default function Auth({ onLogin }: AuthProps) {
     setLoading(true);
 
     try {
+      if (!email || !email.trim()) {
+        throw new Error('Veuillez entrer une adresse email');
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) throw error;
 
-      setSuccess('Un email de réinitialisation a été envoyé. Vérifiez votre boîte de réception.');
-      setTimeout(() => {
-        setIsForgotPassword(false);
-        setIsLogin(true);
-      }, 3000);
+      setSuccess('✓ Email envoyé avec succès ! Vérifiez votre boîte de réception et vos courriers indésirables. Le lien est valide pendant 1 heure.');
     } catch (err: any) {
       console.error('Password reset error:', err);
-      setError(getErrorMessage(err));
+      const message = err?.message || '';
+
+      if (message.includes('Invalid email')) {
+        setError('Adresse email invalide');
+      } else if (message.includes('rate limit')) {
+        setError('Trop de tentatives. Veuillez réessayer dans quelques minutes.');
+      } else {
+        setError(getErrorMessage(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -171,6 +179,11 @@ export default function Auth({ onLogin }: AuthProps) {
           )}
           {isForgotPassword ? (
             <form className="space-y-6" onSubmit={handleForgotPassword}>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  <strong>Important :</strong> Vérifiez votre boîte de réception et vos courriers indésirables (spam) après avoir soumis votre demande.
+                </p>
+              </div>
               <p className="text-gray-600 mb-6">
                 Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
               </p>
@@ -185,26 +198,29 @@ export default function Auth({ onLogin }: AuthProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={loading || !!success}
                 />
               </div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !!success}
                 className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Envoi...' : 'Envoyer le lien de réinitialisation'}
+                {loading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsForgotPassword(false);
-                  setError(null);
-                  setSuccess(null);
-                }}
-                className="w-full text-[#1e2c4f] hover:underline font-medium"
-              >
-                Retour à la connexion
-              </button>
+              {!success && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  className="w-full text-[#1e2c4f] hover:underline font-medium"
+                >
+                  Retour à la connexion
+                </button>
+              )}
             </form>
           ) : (
             <form className="space-y-6" onSubmit={handleSubmit}>

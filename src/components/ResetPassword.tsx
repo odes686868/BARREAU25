@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { GraduationCap, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { GraduationCap, ArrowLeft, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -12,6 +12,22 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        setIsValidSession(false);
+        setError('Lien invalide ou expiré. Veuillez demander un nouveau lien de réinitialisation.');
+      } else {
+        setIsValidSession(true);
+      }
+    };
+
+    checkSession();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,23 +87,51 @@ export default function ResetPassword() {
 
       <div className="w-[600px] bg-white p-12 flex items-center">
         <div className="w-full max-w-md mx-auto">
-          <h2 className="text-2xl font-bold mb-8">
-            Nouveau mot de passe
-          </h2>
-
-          {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6">
-              {error}
+          {isValidSession === null ? (
+            <div className="text-center py-8">
+              <div className="text-xl text-gray-600">Vérification du lien...</div>
             </div>
-          )}
-
-          {success && (
-            <div className="bg-green-50 text-green-600 p-3 rounded-lg mb-6">
-              Mot de passe réinitialisé avec succès ! Redirection...
+          ) : isValidSession === false ? (
+            <div>
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-red-100 p-4 rounded-full">
+                  <AlertCircle size={48} className="text-red-600" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold mb-4 text-center">
+                Lien invalide ou expiré
+              </h2>
+              <p className="text-gray-600 mb-6 text-center">
+                Ce lien de réinitialisation n'est plus valide. Veuillez demander un nouveau lien.
+              </p>
+              <Link
+                to="/auth"
+                className="block w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors text-center"
+              >
+                Retour à la connexion
+              </Link>
             </div>
-          )}
+          ) : (
+            <div>
+              <h2 className="text-2xl font-bold mb-8">
+                Nouveau mot de passe
+              </h2>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+              {error && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 flex items-center gap-2">
+                  <AlertCircle size={20} />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-green-50 text-green-600 p-3 rounded-lg mb-6 flex items-center gap-2">
+                  <CheckCircle size={20} />
+                  <span>Mot de passe réinitialisé avec succès ! Redirection...</span>
+                </div>
+              )}
+
+              <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium mb-2">
                 Nouveau mot de passe
@@ -146,6 +190,8 @@ export default function ResetPassword() {
               {loading ? 'Chargement...' : 'Réinitialiser le mot de passe'}
             </button>
           </form>
+            </div>
+          )}
         </div>
       </div>
     </div>
