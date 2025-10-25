@@ -1,17 +1,8 @@
-export type Exam = {
-  id: number;
-  name: string;
-  description: string;
-  is_active: boolean;
-};
-
 export type Category = {
   id: number;
-  exam_id: number;
+  examId: number;
   name: string;
-  description?: string;
-  display_order: number;
-  is_active: boolean;
+  tableName: string;
 };
 
 export type Question = {
@@ -22,4 +13,10 @@ export type Question = {
   correct_answer: string;
   incorrect_answers: string[];
   explanation: string;
+};
+
+export type Exam = {
+  id: number;
+  name: string;
+  description: string;
 };

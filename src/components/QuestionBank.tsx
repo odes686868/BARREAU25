@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { getCategoriesByExam } from '../lib/exams';
+import { getCategoriesByExam } from '../data/categories';
 import ExamSelector from './ExamSelector';
 import type { Question, Category } from '../types';
 
@@ -28,8 +28,8 @@ export default function QuestionBank() {
     loadQuestions();
   }, [selectedExamId]);
 
-  const loadCategories = async () => {
-    const data = await getCategoriesByExam(selectedExamId);
+  const loadCategories = () => {
+    const data = getCategoriesByExam(selectedExamId);
     setCategories(data);
     if (data.length > 0) {
       setFormData(prev => ({ ...prev, category_id: data[0].id }));

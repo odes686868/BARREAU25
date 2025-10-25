@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
 import { BookOpen, Check } from 'lucide-react';
-import { getExams } from '../lib/exams';
-import type { Exam } from '../types';
+import { exams } from '../data/exams';
+import type { Exam } from '../data/exams';
 
 interface ExamSelectorProps {
   selectedExamId: number;
@@ -9,32 +8,6 @@ interface ExamSelectorProps {
 }
 
 export default function ExamSelector({ selectedExamId, onExamChange }: ExamSelectorProps) {
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadExams();
-  }, []);
-
-  const loadExams = async () => {
-    setLoading(true);
-    const data = await getExams();
-    setExams(data);
-    setLoading(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div className="animate-pulse flex space-x-4">
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
