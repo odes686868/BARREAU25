@@ -22,7 +22,12 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
 
     const { email }: RequestBody = await req.json();
 
@@ -36,9 +41,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: user } = await supabase.auth.admin.getUserByEmail(email);
+    const { data: userId, error: userError } = await supabase
+      .rpc('get_user_id_by_email', { user_email: email.toLowerCase() });
 
-    if (!user) {
+    if (userError) {
+      console.error("Error getting user:", userError);
+      throw userError;
+    }
+      
+    if (!userId) {
       return new Response(
         JSON.stringify({ success: true, message: "If an account exists, a reset code has been sent" }),
         {
@@ -54,7 +65,7 @@ Deno.serve(async (req: Request) => {
     const { error: insertError } = await supabase
       .from("password_reset_codes")
       .insert({
-        user_id: user.user.id,
+        user_id: userId,
         email: email.toLowerCase(),
         code: code,
         expires_at: expiresAt,
@@ -66,19 +77,16 @@ Deno.serve(async (req: Request) => {
       throw insertError;
     }
 
-    await supabase.auth.admin.inviteUserByEmail(email, {
-      data: {
-        reset_code: code,
-      },
-    });
-
     console.log(`Reset code generated for ${email}: ${code}`);
+    console.log(`\n\n========================================`);
+    console.log(`PASSWORD RESET CODE: ${code}`);
+    console.log(`FOR EMAIL: ${email}`);
+    console.log(`========================================\n\n`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Reset code sent successfully",
-        code: code
+        message: "Reset code sent successfully"
       }),
       {
         status: 200,

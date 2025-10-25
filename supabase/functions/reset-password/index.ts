@@ -24,7 +24,12 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
 
     const { email, code, newPassword }: RequestBody = await req.json();
 
@@ -48,7 +53,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: resetCodes, error: fetchError } = await supabase
+    const { data: resetCode, error: fetchError } = await supabase
       .from("password_reset_codes")
       .select("*")
       .eq("email", email.toLowerCase())
@@ -57,9 +62,14 @@ Deno.serve(async (req: Request) => {
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (fetchError || !resetCodes) {
+    if (fetchError) {
+      console.error("Error fetching reset code:", fetchError);
+      throw fetchError;
+    }
+
+    if (!resetCode) {
       return new Response(
         JSON.stringify({ error: "Invalid or expired code" }),
         {
@@ -69,20 +79,29 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      resetCodes.user_id,
-      { password: newPassword }
-    );
+    const { data: updated, error: updateError } = await supabase
+      .rpc('update_user_password_by_id', {
+        user_id: resetCode.user_id,
+        new_password: newPassword
+      });
 
     if (updateError) {
       console.error("Error updating password:", updateError);
       throw updateError;
     }
 
-    await supabase
+    if (!updated) {
+      throw new Error("Failed to update password");
+    }
+
+    const { error: markUsedError } = await supabase
       .from("password_reset_codes")
       .update({ used: true })
-      .eq("id", resetCodes.id);
+      .eq("id", resetCode.id);
+
+    if (markUsedError) {
+      console.error("Error marking code as used:", markUsedError);
+    }
 
     console.log(`Password reset successful for ${email}`);
 
