@@ -65,28 +65,16 @@ export default function Auth({ onLogin }: AuthProps) {
         throw new Error('Veuillez entrer une adresse email');
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-reset-code`;
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email.trim().toLowerCase(),
+        {
+          redirectTo: `${window.location.origin}/reset-password`,
+        }
+      );
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
+      if (error) throw error;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Une erreur est survenue');
-      }
-
-      setSuccess(`✓ Code de vérification généré avec succès! Le code est valide pendant 15 minutes.`);
-
-      setTimeout(() => {
-        navigate('/reset-password', { state: { email: email.trim().toLowerCase(), code: data.code } });
-      }, 1500);
+      setSuccess('✓ Un email de réinitialisation a été envoyé! Vérifiez votre boîte de réception et vos courriers indésirables.');
     } catch (err: any) {
       console.error('Password reset error:', err);
       const message = err?.message || '';
@@ -96,7 +84,7 @@ export default function Auth({ onLogin }: AuthProps) {
       } else if (message.includes('rate limit')) {
         setError('Trop de tentatives. Veuillez réessayer dans quelques minutes.');
       } else {
-        setError(message || 'Une erreur est survenue');
+        setError('Une erreur est survenue. Veuillez réessayer.');
       }
     } finally {
       setLoading(false);
@@ -196,11 +184,11 @@ export default function Auth({ onLogin }: AuthProps) {
             <form className="space-y-6" onSubmit={handleForgotPassword}>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800">
-                  <strong>Important :</strong> Un code de vérification à 6 chiffres sera généré et affiché sur la page suivante. Le code expirera après 15 minutes.
+                  <strong>Important :</strong> Vous recevrez un email avec un lien de réinitialisation. Vérifiez aussi vos courriers indésirables.
                 </p>
               </div>
               <p className="text-gray-600 mb-6">
-                Entrez votre adresse email pour générer un code de réinitialisation.
+                Entrez votre adresse email pour recevoir un lien de réinitialisation.
               </p>
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -221,7 +209,7 @@ export default function Auth({ onLogin }: AuthProps) {
                 disabled={loading || !!success}
                 className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Génération du code...' : 'Générer le code de réinitialisation'}
+                {loading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
               </button>
               {!success && (
                 <button
