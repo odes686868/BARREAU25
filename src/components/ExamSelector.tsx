@@ -1,4 +1,4 @@
-import { BookOpen, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { exams } from '../data/exams';
 import type { Exam } from '../data/exams';
 
@@ -10,33 +10,29 @@ interface ExamSelectorProps {
 export default function ExamSelector({ selectedExamId, onExamChange }: ExamSelectorProps) {
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-      <div className="flex items-center mb-4">
-        <BookOpen className="w-5 h-5 text-slate-600 mr-2" />
-        <h2 className="text-lg font-semibold text-slate-800">Sélectionner un examen</h2>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="mb-8">
+      <div className="grid grid-cols-2 gap-3">
         {exams.map((exam) => (
           <button
             key={exam.id}
             onClick={() => onExamChange(exam.id)}
-            className={`relative p-4 rounded-lg border-2 transition-all text-left ${
+            className={`relative p-6 rounded-xl border-2 transition-all text-center ${
               selectedExamId === exam.id
-                ? 'border-slate-600 bg-slate-50'
-                : 'border-gray-200 hover:border-slate-400 bg-white'
+                ? 'border-slate-700 bg-slate-700 shadow-lg transform scale-[1.02]'
+                : 'border-gray-300 bg-white hover:border-slate-500 hover:shadow-md'
             }`}
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="font-semibold text-slate-800 mb-1">{exam.name}</h3>
-                {exam.description && (
-                  <p className="text-sm text-gray-600">{exam.description}</p>
-                )}
-              </div>
+            <div className="flex flex-col items-center">
+              <h3 className={`text-xl font-bold mb-2 ${
+                selectedExamId === exam.id ? 'text-white' : 'text-slate-800'
+              }`}>
+                {exam.name}
+              </h3>
               {selectedExamId === exam.id && (
-                <div className="ml-3 flex-shrink-0">
-                  <div className="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-white" />
+                <div className="mt-2">
+                  <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white text-slate-700 text-sm font-medium">
+                    <Check className="w-4 h-4" />
+                    Sélectionné
                   </div>
                 </div>
               )}
