@@ -65,13 +65,28 @@ export default function Auth({ onLogin }: AuthProps) {
         throw new Error('Veuillez entrer une adresse email');
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-reset-code`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
 
-      if (error) throw error;
+      const data = await response.json();
 
-      setSuccess('✓ Email envoyé avec succès ! Vérifiez votre boîte de réception et vos courriers indésirables. Le lien est valide pendant 1 heure.');
+      if (!response.ok) {
+        throw new Error(data.error || 'Une erreur est survenue');
+      }
+
+      setSuccess(`✓ Un code de vérification à 6 chiffres a été envoyé à ${email}. Le code est valide pendant 15 minutes.`);
+
+      setTimeout(() => {
+        navigate('/reset-password', { state: { email: email.trim().toLowerCase() } });
+      }, 2000);
     } catch (err: any) {
       console.error('Password reset error:', err);
       const message = err?.message || '';
@@ -81,7 +96,7 @@ export default function Auth({ onLogin }: AuthProps) {
       } else if (message.includes('rate limit')) {
         setError('Trop de tentatives. Veuillez réessayer dans quelques minutes.');
       } else {
-        setError(getErrorMessage(err));
+        setError(message || 'Une erreur est survenue');
       }
     } finally {
       setLoading(false);
@@ -181,11 +196,11 @@ export default function Auth({ onLogin }: AuthProps) {
             <form className="space-y-6" onSubmit={handleForgotPassword}>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800">
-                  <strong>Important :</strong> Vérifiez votre boîte de réception et vos courriers indésirables (spam) après avoir soumis votre demande.
+                  <strong>Important :</strong> Vous recevrez un code de vérification à 6 chiffres. Le code expirera après 15 minutes.
                 </p>
               </div>
               <p className="text-gray-600 mb-6">
-                Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+                Entrez votre adresse email et nous vous enverrons un code de vérification pour réinitialiser votre mot de passe.
               </p>
               <div>
                 <label className="block text-sm font-medium mb-2">
