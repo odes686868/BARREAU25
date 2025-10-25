@@ -12,7 +12,6 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'tests', label: 'Tests', icon: BookOpen },
     { id: 'resultats', label: 'Résultats', icon: CheckCircle },
     { id: 'progression', label: 'Progression', icon: ChartBar },
-    { id: 'questions', label: 'Questions', icon: Database },
   ] as const;
 
   return (
