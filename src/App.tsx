@@ -1,7 +1,6 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './components/Auth';
-import ResetPassword from './components/ResetPassword';
 import Settings from './components/Settings';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
@@ -79,7 +78,6 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/app/*" element={
             isAuthenticated ? <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/auth" />
           } />

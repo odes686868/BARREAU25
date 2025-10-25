@@ -10,7 +10,6 @@ interface AuthProps {
 export default function Auth({ onLogin }: AuthProps) {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -54,42 +53,6 @@ export default function Auth({ onLogin }: AuthProps) {
     return message || 'Une erreur est survenue';
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
-
-    try {
-      if (!email || !email.trim()) {
-        throw new Error('Veuillez entrer une adresse email');
-      }
-
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        email.trim().toLowerCase(),
-        {
-          redirectTo: `${window.location.origin}/reset-password`,
-        }
-      );
-
-      if (error) throw error;
-
-      setSuccess('✓ Un email de réinitialisation a été envoyé! Vérifiez votre boîte de réception et vos courriers indésirables.');
-    } catch (err: any) {
-      console.error('Password reset error:', err);
-      const message = err?.message || '';
-
-      if (message.includes('Invalid email')) {
-        setError('Adresse email invalide');
-      } else if (message.includes('rate limit')) {
-        setError('Trop de tentatives. Veuillez réessayer dans quelques minutes.');
-      } else {
-        setError('Une erreur est survenue. Veuillez réessayer.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,7 +131,7 @@ export default function Auth({ onLogin }: AuthProps) {
       <div className="w-[600px] bg-white p-12 flex items-center">
         <div className="w-full max-w-md mx-auto">
           <h2 className="text-2xl font-bold mb-8">
-            {isForgotPassword ? 'Réinitialiser le mot de passe' : isLogin ? 'Connexion' : 'Créer un compte'}
+            {isLogin ? 'Connexion' : 'Créer un compte'}
           </h2>
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6">
@@ -180,52 +143,7 @@ export default function Auth({ onLogin }: AuthProps) {
               {success}
             </div>
           )}
-          {isForgotPassword ? (
-            <form className="space-y-6" onSubmit={handleForgotPassword}>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <p className="text-sm text-blue-800">
-                  <strong>Important :</strong> Vous recevrez un email avec un lien de réinitialisation. Vérifiez aussi vos courriers indésirables.
-                </p>
-              </div>
-              <p className="text-gray-600 mb-6">
-                Entrez votre adresse email pour recevoir un lien de réinitialisation.
-              </p>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Adresse courriel
-                </label>
-                <input
-                  type="email"
-                  className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
-                  placeholder="exemple@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading || !!success}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !!success}
-                className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
-              </button>
-              {!success && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsForgotPassword(false);
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                  className="w-full text-[#1e2c4f] hover:underline font-medium"
-                >
-                  Retour à la connexion
-                </button>
-              )}
-            </form>
-          ) : (
+          {
             <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -306,23 +224,15 @@ export default function Auth({ onLogin }: AuthProps) {
 
             {isLogin && (
               <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsForgotPassword(true);
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                  className="text-sm text-[#1e2c4f] hover:underline"
-                >
-                  Mot de passe oublié ?
-                </button>
+                <p className="text-sm text-gray-500">
+                  Mot de passe oublié ? Changez-le dans Paramètres après connexion.
+                </p>
               </div>
             )}
           </form>
-          )}
+          }
 
-          {!isForgotPassword && (
+          {(
             <div className="mt-8 text-center">
               <button
                 onClick={() => {
