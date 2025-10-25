@@ -29,19 +29,28 @@ export default function Auth({ onLogin }: AuthProps) {
   };
 
   const getErrorMessage = (error: any): string => {
-    if (error.message === 'Invalid login credentials') {
+    const message = error?.message || '';
+
+    if (message === 'Invalid login credentials') {
       return 'Email ou mot de passe incorrect';
     }
-    if (error.message?.includes('Email already registered')) {
+    if (message.includes('User already registered')) {
       return 'Cette adresse email est déjà utilisée';
     }
-    if (error.message?.includes('Email not confirmed')) {
+    if (message.includes('Email not confirmed')) {
       return 'Email non confirmé. Veuillez vérifier votre boîte de réception.';
     }
-    if (error.message?.includes('Password should be at least 6 characters')) {
+    if (message.includes('Password should be at least')) {
       return 'Le mot de passe doit contenir au moins 6 caractères';
     }
-    return error.message || 'Une erreur est survenue';
+    if (message.includes('Unable to validate email address')) {
+      return 'Adresse email invalide';
+    }
+    if (message.includes('Failed to fetch') || message.includes('fetch')) {
+      return 'Erreur de connexion. Vérifiez votre connexion internet.';
+    }
+
+    return message || 'Une erreur est survenue';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,24 +64,25 @@ export default function Auth({ onLogin }: AuthProps) {
 
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
-        if (error) {
-          throw new Error(getErrorMessage(error));
-        }
+
+        if (error) throw error;
         if (!data.user) throw new Error('Erreur lors de la connexion');
 
         onLogin();
         navigate('/app');
       } else {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/app`
+          }
         });
-        if (error) {
-          throw new Error(getErrorMessage(error));
-        }
+
+        if (error) throw error;
         if (!data.user) throw new Error('Erreur lors de l\'inscription');
 
         setSuccess('Compte créé avec succès ! Redirection...');
@@ -81,8 +91,9 @@ export default function Auth({ onLogin }: AuthProps) {
           navigate('/app');
         }, 1500);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : getErrorMessage(err));
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
