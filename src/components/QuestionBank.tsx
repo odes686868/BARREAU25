@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Plus, Trash2, CreditCard as Edit2, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getCategoriesByExam } from '../data/categories';
 import ExamSelector from './ExamSelector';
