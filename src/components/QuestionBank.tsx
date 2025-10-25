@@ -1,137 +1,366 @@
 import { useState, useEffect } from 'react';
+import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Question } from '../types';
-import { categories } from '../data/categories';
+import { getCategoriesByExam } from '../lib/exams';
+import ExamSelector from './ExamSelector';
+import type { Question, Category } from '../types';
 
 export default function QuestionBank() {
-  const [questionsByCategory, setQuestionsByCategory] = useState<Record<number, Question[]>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedExamId, setSelectedExamId] = useState<number>(1);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const [formData, setFormData] = useState({
+    question_text: '',
+    correct_answer: '',
+    incorrect_answer_1: '',
+    incorrect_answer_2: '',
+    incorrect_answer_3: '',
+    explanation: '',
+    category_id: 1
+  });
 
   useEffect(() => {
-    async function loadQuestions() {
-      try {
-        const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-        const maxRetries = 3;
-        const allQuestions: Record<number, Question[]> = {};
+    loadCategories();
+    loadQuestions();
+  }, [selectedExamId]);
 
-        // Load questions from all categories
-        for (const catId of [1, 2, 3, 4, 5, 6, 7]) {
-          let retries = 0;
-          while (retries < maxRetries) {
-            try {
-              const { data, error } = await supabase
-                .from(`category_${catId}`)
-                .select('*');
+  const loadCategories = async () => {
+    const data = await getCategoriesByExam(selectedExamId);
+    setCategories(data);
+    if (data.length > 0) {
+      setFormData(prev => ({ ...prev, category_id: data[0].id }));
+    }
+  };
 
-              if (error) throw error;
+  const loadQuestions = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('questions')
+      .select('*')
+      .eq('exam_id', selectedExamId)
+      .order('category_id', { ascending: true })
+      .order('created_at', { ascending: false });
 
-              if (data) {
-                allQuestions[catId] = data.map(q => ({
-                  id: q.id,
-                  category_id: catId,
-                  question_text: q.question_text,
-                  correct_answer: q.correct_answer,
-                  incorrect_answers: [
-                    q['incorrect_answers/0'],
-                    q['incorrect_answers/1'],
-                    q['incorrect_answers/2']
-                  ].filter(Boolean),
-                  explanation: q.explanation
-                }));
-                console.log(`Loaded ${allQuestions[catId].length} questions from category ${catId}`);
-                break;
-              }
-              break;
-            } catch (error) {
-              console.error(`Error loading category ${catId} (attempt ${retries + 1}):`, error);
-              retries++;
-              if (retries < maxRetries) {
-                await delay(1000 * retries); // Exponential backoff
-              }
-            }
-          }
-        }
+    if (error) {
+      console.error('Error loading questions:', error);
+    } else {
+      setQuestions(data || []);
+    }
+    setLoading(false);
+  };
 
-        setQuestionsByCategory(allQuestions);
-      } catch (err) {
-        console.error('Error fetching questions:', err);
-        setError('Une erreur est survenue lors du chargement des questions. Veuillez rafraîchir la page.');
-      } finally {
-        setLoading(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const questionData = {
+      id: editingId || `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      exam_id: selectedExamId,
+      category_id: formData.category_id,
+      question_text: formData.question_text,
+      correct_answer: formData.correct_answer,
+      incorrect_answers: [
+        formData.incorrect_answer_1,
+        formData.incorrect_answer_2,
+        formData.incorrect_answer_3
+      ].filter(Boolean),
+      explanation: formData.explanation || null
+    };
+
+    if (editingId) {
+      const { error } = await supabase
+        .from('questions')
+        .update(questionData)
+        .eq('id', editingId);
+
+      if (error) {
+        console.error('Error updating question:', error);
+        alert('Erreur lors de la mise à jour de la question');
+      } else {
+        alert('Question mise à jour avec succès !');
+        setEditingId(null);
+      }
+    } else {
+      const { error } = await supabase
+        .from('questions')
+        .insert([questionData]);
+
+      if (error) {
+        console.error('Error adding question:', error);
+        alert('Erreur lors de l\'ajout de la question');
+      } else {
+        alert('Question ajoutée avec succès !');
+        setShowAddForm(false);
       }
     }
 
+    resetForm();
     loadQuestions();
-  }, []);
+    setLoading(false);
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <div className="text-lg">Chargement des questions...</div>
-      </div>
-    );
-  }
+  const handleEdit = (question: Question) => {
+    setEditingId(question.id);
+    setFormData({
+      question_text: question.question_text,
+      correct_answer: question.correct_answer,
+      incorrect_answer_1: question.incorrect_answers[0] || '',
+      incorrect_answer_2: question.incorrect_answers[1] || '',
+      incorrect_answer_3: question.incorrect_answers[2] || '',
+      explanation: question.explanation || '',
+      category_id: question.category_id
+    });
+    setShowAddForm(true);
+  };
 
-  if (error) {
-    return (
-      <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-        {error}
-      </div>
-    );
-  }
+  const handleDelete = async (id: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette question ?')) return;
 
-  const totalQuestions = Object.values(questionsByCategory).reduce(
-    (sum, questions) => sum + questions.length,
-    0
-  );
+    setLoading(true);
+    const { error } = await supabase
+      .from('questions')
+      .delete()
+      .eq('id', id);
 
-  if (totalQuestions === 0) {
-    return (
-      <div className="text-center text-gray-600">
-        Aucune question disponible.
-      </div>
-    );
-  }
+    if (error) {
+      console.error('Error deleting question:', error);
+      alert('Erreur lors de la suppression de la question');
+    } else {
+      alert('Question supprimée avec succès !');
+      loadQuestions();
+    }
+    setLoading(false);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      question_text: '',
+      correct_answer: '',
+      incorrect_answer_1: '',
+      incorrect_answer_2: '',
+      incorrect_answer_3: '',
+      explanation: '',
+      category_id: categories[0]?.id || 1
+    });
+    setEditingId(null);
+  };
 
   return (
     <div className="space-y-6">
-      {categories.map(category => {
-        const questions = questionsByCategory[category.id] || [];
-        if (questions.length === 0) return null;
+      <ExamSelector
+        selectedExamId={selectedExamId}
+        onExamChange={(examId) => {
+          setSelectedExamId(examId);
+          setShowAddForm(false);
+          setEditingId(null);
+        }}
+      />
 
-        return (
-          <div key={category.id} className="space-y-4">
-            <h2 className="text-2xl font-bold">
-              {category.name} ({questions.length} questions)
-            </h2>
-            <div className="space-y-6">
-              {questions.map(question => (
-                <div key={question.id} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
-            <h3 className="font-medium text-lg mb-4">{question.question_text}</h3>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-green-600">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <p>{question.correct_answer}</p>
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-slate-800">Banque de questions</h2>
+          <button
+            onClick={() => {
+              setShowAddForm(!showAddForm);
+              resetForm();
+            }}
+            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors"
+          >
+            {showAddForm ? (
+              <>
+                <X className="w-4 h-4" />
+                Annuler
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                Ajouter une question
+              </>
+            )}
+          </button>
+        </div>
+
+        {showAddForm && (
+          <form onSubmit={handleSubmit} className="mb-8 p-6 bg-gray-50 rounded-lg space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Catégorie
+              </label>
+              <select
+                value={formData.category_id}
+                onChange={(e) => setFormData({ ...formData, category_id: Number(e.target.value) })}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                required
+              >
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Question
+              </label>
+              <textarea
+                value={formData.question_text}
+                onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                rows={3}
+                required
+                placeholder="Entrez la question..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Réponse correcte
+              </label>
+              <input
+                type="text"
+                value={formData.correct_answer}
+                onChange={(e) => setFormData({ ...formData, correct_answer: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                required
+                placeholder="La bonne réponse..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Réponses incorrectes
+              </label>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={formData.incorrect_answer_1}
+                  onChange={(e) => setFormData({ ...formData, incorrect_answer_1: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  required
+                  placeholder="Réponse incorrecte 1..."
+                />
+                <input
+                  type="text"
+                  value={formData.incorrect_answer_2}
+                  onChange={(e) => setFormData({ ...formData, incorrect_answer_2: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  required
+                  placeholder="Réponse incorrecte 2..."
+                />
+                <input
+                  type="text"
+                  value={formData.incorrect_answer_3}
+                  onChange={(e) => setFormData({ ...formData, incorrect_answer_3: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  required
+                  placeholder="Réponse incorrecte 3..."
+                />
               </div>
-              {question.incorrect_answers.map((answer, i) => (
-                <div key={i} className="flex items-center space-x-2 text-red-600">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
-                  <p>{answer}</p>
-                </div>
-              ))}
-              {question.explanation && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-gray-600 text-sm">{question.explanation}</p>
-                </div>
-              )}
             </div>
-                </div>
-              ))}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Explication
+              </label>
+              <textarea
+                value={formData.explanation}
+                onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                rows={3}
+                placeholder="Explication de la réponse correcte..."
+              />
             </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                {editingId ? 'Mettre à jour' : 'Ajouter'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddForm(false);
+                  resetForm();
+                }}
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
+        )}
+
+        {loading && !showAddForm ? (
+          <div className="text-center py-12">
+            <div className="text-gray-600">Chargement des questions...</div>
           </div>
-        );
-      })}
+        ) : questions.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            Aucune question pour cet examen. Ajoutez-en une pour commencer !
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {categories.map((category) => {
+              const categoryQuestions = questions.filter(q => q.category_id === category.id);
+              if (categoryQuestions.length === 0) return null;
+
+              return (
+                <div key={category.id} className="border rounded-lg p-4">
+                  <h3 className="font-semibold text-lg text-slate-800 mb-4">
+                    {category.name} ({categoryQuestions.length} questions)
+                  </h3>
+                  <div className="space-y-3">
+                    {categoryQuestions.map((question) => (
+                      <div key={question.id} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="font-medium text-gray-900 flex-1">{question.question_text}</p>
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => handleEdit(question)}
+                              className="text-blue-600 hover:text-blue-800"
+                              title="Modifier"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(question.id)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="text-sm space-y-1">
+                          <p className="text-green-700">✓ {question.correct_answer}</p>
+                          {question.incorrect_answers.map((ans, idx) => (
+                            <p key={idx} className="text-gray-600">✗ {ans}</p>
+                          ))}
+                        </div>
+                        {question.explanation && (
+                          <p className="text-sm text-gray-600 mt-2 italic">
+                            Explication : {question.explanation}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

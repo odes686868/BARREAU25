@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import ProgressTab from './components/ProgressTab';
 import TestsTab from './components/TestsTab';
 import ResultsTab from './components/ResultsTab';
+import QuestionBank from './components/QuestionBank';
 import { supabase } from './lib/supabase';
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
 
@@ -14,7 +15,7 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
   isAuthenticated: boolean;
   setIsAuthenticated: (value: boolean) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'tests' | 'resultats' | 'progression'>('tests');
+  const [activeTab, setActiveTab] = useState<'tests' | 'resultats' | 'progression' | 'questions'>('tests');
   const [showSettings, setShowSettings] = useState(false);
 
   if (!isAuthenticated) {
@@ -29,6 +30,7 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
         {activeTab === 'tests' && <TestsTab />}
         {activeTab === 'resultats' && <ResultsTab />}
         {activeTab === 'progression' && <ProgressTab />}
+        {activeTab === 'questions' && <QuestionBank />}
       </main>
       {showSettings && (
         <Settings
