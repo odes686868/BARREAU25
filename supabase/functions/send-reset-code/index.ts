@@ -84,9 +84,10 @@ Deno.serve(async (req: Request) => {
     console.log(`========================================\n\n`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Reset code sent successfully"
+      JSON.stringify({
+        success: true,
+        message: "Reset code generated successfully",
+        code: code
       }),
       {
         status: 200,

@@ -82,11 +82,11 @@ export default function Auth({ onLogin }: AuthProps) {
         throw new Error(data.error || 'Une erreur est survenue');
       }
 
-      setSuccess(`✓ Un code de vérification à 6 chiffres a été envoyé à ${email}. Le code est valide pendant 15 minutes.`);
+      setSuccess(`✓ Code de vérification généré avec succès! Le code est valide pendant 15 minutes.`);
 
       setTimeout(() => {
-        navigate('/reset-password', { state: { email: email.trim().toLowerCase() } });
-      }, 2000);
+        navigate('/reset-password', { state: { email: email.trim().toLowerCase(), code: data.code } });
+      }, 1500);
     } catch (err: any) {
       console.error('Password reset error:', err);
       const message = err?.message || '';
@@ -196,11 +196,11 @@ export default function Auth({ onLogin }: AuthProps) {
             <form className="space-y-6" onSubmit={handleForgotPassword}>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800">
-                  <strong>Important :</strong> Vous recevrez un code de vérification à 6 chiffres. Le code expirera après 15 minutes.
+                  <strong>Important :</strong> Un code de vérification à 6 chiffres sera généré et affiché sur la page suivante. Le code expirera après 15 minutes.
                 </p>
               </div>
               <p className="text-gray-600 mb-6">
-                Entrez votre adresse email et nous vous enverrons un code de vérification pour réinitialiser votre mot de passe.
+                Entrez votre adresse email pour générer un code de réinitialisation.
               </p>
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -221,7 +221,7 @@ export default function Auth({ onLogin }: AuthProps) {
                 disabled={loading || !!success}
                 className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
+                {loading ? 'Génération du code...' : 'Générer le code de réinitialisation'}
               </button>
               {!success && (
                 <button

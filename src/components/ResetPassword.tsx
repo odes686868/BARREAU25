@@ -7,9 +7,10 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
   const emailFromState = location.state?.email || '';
+  const codeFromState = location.state?.code || '';
 
   const [email, setEmail] = useState(emailFromState);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(codeFromState);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -172,6 +173,18 @@ export default function ResetPassword() {
                 Vérification du code
               </h2>
 
+              {codeFromState && (
+                <div className="bg-gradient-to-r from-[#1e2c4f] to-[#2a3f6f] text-white p-6 rounded-lg mb-6">
+                  <p className="text-sm mb-2 opacity-90">Votre code de réinitialisation :</p>
+                  <div className="text-5xl font-bold tracking-widest text-center font-mono">
+                    {codeFromState}
+                  </div>
+                  <p className="text-xs mt-3 opacity-75 text-center">
+                    Ce code expire dans 15 minutes
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Adresse courriel
@@ -201,7 +214,7 @@ export default function ResetPassword() {
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Entrez le code à 6 chiffres reçu par email
+                  {codeFromState ? 'Le code est affiché ci-dessus' : 'Entrez le code à 6 chiffres'}
                 </p>
               </div>
 
