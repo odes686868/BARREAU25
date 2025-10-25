@@ -35,29 +35,79 @@ export async function getAvailableQuestions(examId: number, categoryId?: number)
   if (!supabase) return [];
 
   try {
-    let query = supabase
-      .from('questions')
-      .select('*')
-      .eq('exam_id', examId);
+    let allQuestions: Question[] = [];
 
     if (categoryId) {
-      query = query.eq('category_id', categoryId);
+      const tableName = examId === 1 ? `category_${categoryId}` : `examen1_${categoryId - 7}`;
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*');
+
+      if (error) {
+        console.error(`Error fetching from ${tableName}:`, error);
+        return [];
+      }
+
+      if (data && data.length > 0) {
+        allQuestions = data.map(q => ({
+          id: q.id,
+          exam_id: examId,
+          category_id: categoryId,
+          question_text: q.question_text,
+          correct_answer: q.correct_answer,
+          incorrect_answers: Array.isArray(q.incorrect_answers)
+            ? q.incorrect_answers
+            : [q['incorrect_answers/0'], q['incorrect_answers/1'], q['incorrect_answers/2']].filter(Boolean),
+          explanation: q.explanation || ''
+        }));
+      }
+    } else {
+      if (examId === 1) {
+        for (let catId = 1; catId <= 7; catId++) {
+          const { data } = await supabase.from(`category_${catId}`).select('*');
+          if (data) {
+            const mapped = data.map(q => ({
+              id: q.id,
+              exam_id: examId,
+              category_id: catId,
+              question_text: q.question_text,
+              correct_answer: q.correct_answer,
+              incorrect_answers: Array.isArray(q.incorrect_answers)
+                ? q.incorrect_answers
+                : [q['incorrect_answers/0'], q['incorrect_answers/1'], q['incorrect_answers/2']].filter(Boolean),
+              explanation: q.explanation || ''
+            }));
+            allQuestions.push(...mapped);
+          }
+        }
+      } else {
+        for (let i = 1; i <= 12; i++) {
+          const { data } = await supabase.from(`examen1_${i}`).select('*');
+          if (data) {
+            const catId = 7 + i;
+            const mapped = data.map(q => ({
+              id: q.id,
+              exam_id: examId,
+              category_id: catId,
+              question_text: q.question_text,
+              correct_answer: q.correct_answer,
+              incorrect_answers: Array.isArray(q.incorrect_answers)
+                ? q.incorrect_answers
+                : [q['incorrect_answers/0'], q['incorrect_answers/1'], q['incorrect_answers/2']].filter(Boolean),
+              explanation: q.explanation || ''
+            }));
+            allQuestions.push(...mapped);
+          }
+        }
+      }
     }
 
-    const { data: questions, error } = await query;
-
-    if (error) {
-      console.error('Error fetching questions:', error);
-      return [];
-    }
-
-    if (!questions || questions.length === 0) {
+    if (allQuestions.length === 0) {
       console.log('No questions found for exam', examId, 'category', categoryId);
       return [];
     }
 
-    // Shuffle the questions
-    const shuffled = [...questions];
+    const shuffled = [...allQuestions];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];

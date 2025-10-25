@@ -38,17 +38,50 @@ export default function QuestionBank() {
 
   const loadQuestions = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('questions')
-      .select('*')
-      .eq('exam_id', selectedExamId)
-      .order('category_id', { ascending: true })
-      .order('created_at', { ascending: false });
+    const allQuestions: Question[] = [];
 
-    if (error) {
+    try {
+      if (selectedExamId === 1) {
+        for (let catId = 1; catId <= 7; catId++) {
+          const { data } = await supabase.from(`category_${catId}`).select('*');
+          if (data) {
+            const mapped = data.map(q => ({
+              id: q.id,
+              exam_id: selectedExamId,
+              category_id: catId,
+              question_text: q.question_text,
+              correct_answer: q.correct_answer,
+              incorrect_answers: Array.isArray(q.incorrect_answers)
+                ? q.incorrect_answers
+                : [q['incorrect_answers/0'], q['incorrect_answers/1'], q['incorrect_answers/2']].filter(Boolean),
+              explanation: q.explanation || ''
+            }));
+            allQuestions.push(...mapped);
+          }
+        }
+      } else {
+        for (let i = 1; i <= 12; i++) {
+          const { data } = await supabase.from(`examen1_${i}`).select('*');
+          if (data) {
+            const catId = 7 + i;
+            const mapped = data.map(q => ({
+              id: q.id,
+              exam_id: selectedExamId,
+              category_id: catId,
+              question_text: q.question_text,
+              correct_answer: q.correct_answer,
+              incorrect_answers: Array.isArray(q.incorrect_answers)
+                ? q.incorrect_answers
+                : [q['incorrect_answers/0'], q['incorrect_answers/1'], q['incorrect_answers/2']].filter(Boolean),
+              explanation: q.explanation || ''
+            }));
+            allQuestions.push(...mapped);
+          }
+        }
+      }
+      setQuestions(allQuestions);
+    } catch (error) {
       console.error('Error loading questions:', error);
-    } else {
-      setQuestions(data || []);
     }
     setLoading(false);
   };
@@ -57,9 +90,12 @@ export default function QuestionBank() {
     e.preventDefault();
     setLoading(true);
 
+    const tableName = selectedExamId === 1
+      ? `category_${formData.category_id}`
+      : `examen1_${formData.category_id - 7}`;
+
     const questionData = {
       id: editingId || `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      exam_id: selectedExamId,
       category_id: formData.category_id,
       question_text: formData.question_text,
       correct_answer: formData.correct_answer,
@@ -68,12 +104,13 @@ export default function QuestionBank() {
         formData.incorrect_answer_2,
         formData.incorrect_answer_3
       ].filter(Boolean),
-      explanation: formData.explanation || null
+      explanation: formData.explanation || null,
+      exam_id: selectedExamId
     };
 
     if (editingId) {
       const { error } = await supabase
-        .from('questions')
+        .from(tableName)
         .update(questionData)
         .eq('id', editingId);
 
@@ -86,7 +123,7 @@ export default function QuestionBank() {
       }
     } else {
       const { error } = await supabase
-        .from('questions')
+        .from(tableName)
         .insert([questionData]);
 
       if (error) {
@@ -121,8 +158,20 @@ export default function QuestionBank() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette question ?')) return;
 
     setLoading(true);
+
+    const question = questions.find(q => q.id === id);
+    if (!question) {
+      alert('Question introuvable');
+      setLoading(false);
+      return;
+    }
+
+    const tableName = selectedExamId === 1
+      ? `category_${question.category_id}`
+      : `examen1_${question.category_id - 7}`;
+
     const { error } = await supabase
-      .from('questions')
+      .from(tableName)
       .delete()
       .eq('id', id);
 
