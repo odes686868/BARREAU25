@@ -228,61 +228,7 @@ export default function Settings({ onClose }: SettingsProps) {
             )}
           </div>
 
-          {/* Questions Section */}
-          <div className="border rounded-lg overflow-hidden">
-            <button
-              onClick={() => toggleSection('questions')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
-            >
-              <div className="flex items-center space-x-3">
-                <BookOpen size={20} className="text-gray-600" />
-                <span className="font-medium">Questions de la base de données</span>
-              </div>
-              {expandedSection === 'questions' ? (
-                <ChevronUp size={20} className="text-gray-600" />
-              ) : (
-                <ChevronDown size={20} className="text-gray-600" />
-              )}
-            </button>
-            {expandedSection === 'questions' && (
-              <div className="p-4 border-t max-h-[60vh] overflow-y-auto">
-                {loading ? (
-                  <div className="text-center py-4">Chargement des questions...</div>
-                ) : (
-                  <div className="space-y-6">
-                    {categories.map(category => {
-                      const categoryQuestions = questions.filter(q => q.category_id === category.id);
-                      if (categoryQuestions.length === 0) return null;
-
-                      return (
-                        <div key={category.id} className="space-y-4">
-                          <h3 className="font-medium text-lg text-[#1e2c4f]">
-                            {category.name} ({categoryQuestions.length} questions)
-                          </h3>
-                          <div className="space-y-4">
-                            {categoryQuestions.map(question => (
-                              <div key={question.id} className="bg-gray-50 p-4 rounded-lg space-y-3">
-                                <p className="font-medium">{question.question_text}</p>
-                                <div className="pl-4 space-y-2">
-                                  <p className="text-green-600">✓ {question.correct_answer}</p>
-                                  {question.incorrect_answers.map((answer, index) => (
-                                    <p key={index} className="text-red-600">✗ {answer}</p>
-                                  ))}
-                                </div>
-                                <div className="text-sm text-gray-600 mt-2 pt-2 border-t">
-                                  <strong>Explication:</strong> {question.explanation}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          {/* Questions Section - Hidden */}
 
           {/* Logout Section */}
           <button
