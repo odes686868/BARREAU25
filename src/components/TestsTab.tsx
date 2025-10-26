@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { getAvailableQuestions, submitQuizAnswer, saveQuizResult } from '../lib/quiz';
 import { getCategoriesByExam } from '../data/categories';
 import ExamSelector from './ExamSelector';
+import { useQuizLimit } from '../hooks/useQuizLimit';
+import { QuizPaywall } from './QuizPaywall';
 import type { Question, Category } from '../types';
 
 interface QuizState {
@@ -25,6 +27,9 @@ export default function TestsTab({ selectedExamId, setSelectedExamId }: TestsTab
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
+  const { canTakeQuiz, remainingQuizzes, isPremium, recordQuizAttempt, completeQuizAttempt } = useQuizLimit();
 
   useEffect(() => {
     loadCategories();
@@ -36,8 +41,16 @@ export default function TestsTab({ selectedExamId, setSelectedExamId }: TestsTab
   };
 
   const startQuiz = async (numQuestions: number, categoryId?: number) => {
+    if (!canTakeQuiz) {
+      setShowPaywall(true);
+      return;
+    }
+
     setLoading(true);
     try {
+      const attemptId = await recordQuizAttempt(selectedExamId.toString(), categoryId?.toString());
+      setCurrentAttemptId(attemptId);
+
       const questions = await getAvailableQuestions(selectedExamId, categoryId);
       const selectedQuestions = questions.slice(0, numQuestions);
 
@@ -108,8 +121,14 @@ export default function TestsTab({ selectedExamId, setSelectedExamId }: TestsTab
         await saveQuizResult(result);
       }
 
+      if (currentAttemptId) {
+        const totalCorrect = Object.values(questionsByCategory).reduce((sum, stats) => sum + stats.correct, 0);
+        await completeQuizAttempt(currentAttemptId, totalCorrect, quizState.questions.length);
+      }
+
       setQuizState(null);
       setSelectedCategory(null);
+      setCurrentAttemptId(null);
     } catch (error) {
       console.error('Error saving quiz result:', error);
     }
@@ -236,6 +255,12 @@ export default function TestsTab({ selectedExamId, setSelectedExamId }: TestsTab
 
   return (
     <div className="space-y-8">
+      {showPaywall && (
+        <QuizPaywall
+          remainingQuizzes={remainingQuizzes || 0}
+          onClose={() => setShowPaywall(false)}
+        />
+      )}
       <ExamSelector
         selectedExamId={selectedExamId}
         onExamChange={(examId) => {
@@ -244,6 +269,15 @@ export default function TestsTab({ selectedExamId, setSelectedExamId }: TestsTab
           setSelectedCategory(null);
         }}
       />
+      {!isPremium && remainingQuizzes !== null && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <p className="text-amber-800 font-medium">
+            {remainingQuizzes > 0
+              ? `${remainingQuizzes} quiz gratuit restant`
+              : 'Vous avez utilisé votre quiz gratuit. Passez au premium pour un accès illimité !'}
+          </p>
+        </div>
+      )}
       <h2 className="text-2xl font-bold mb-6">Tests disponibles</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[
