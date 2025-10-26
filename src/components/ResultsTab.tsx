@@ -53,15 +53,17 @@ export default function ResultsTab({ selectedExamId, setSelectedExamId }: Result
     }
   };
 
-  const globalStats = results.reduce(
-    (acc, result) => ({
-      total: acc.total + result.total_questions,
-      correct: acc.correct + result.correct_answers,
-      incorrect: acc.incorrect + result.incorrect_answers,
-      unanswered: acc.unanswered + result.unanswered,
-    }),
-    { total: 0, correct: 0, incorrect: 0, unanswered: 0 }
-  );
+  const globalStats = results
+    .filter((r) => r.exam_id === selectedExamId)
+    .reduce(
+      (acc, result) => ({
+        total: acc.total + result.total_questions,
+        correct: acc.correct + result.correct_answers,
+        incorrect: acc.incorrect + result.incorrect_answers,
+        unanswered: acc.unanswered + result.unanswered,
+      }),
+      { total: 0, correct: 0, incorrect: 0, unanswered: 0 }
+    );
 
   const examCategories = selectedExamId === 1 ? exam1Categories : exam2Categories;
 
