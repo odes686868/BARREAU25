@@ -53,10 +53,10 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { initializeAuth } = useAuthStore();
+  const { initialize } = useAuthStore();
 
   useEffect(() => {
-    initializeAuth();
+    initialize();
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
       setLoading(false);
@@ -69,7 +69,7 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, [initializeAuth]);
+  }, [initialize]);
 
   if (loading) {
     return (
