@@ -1,7 +1,7 @@
 import React from 'react';
 import { SubscriptionCard } from '../components/subscription/SubscriptionCard';
 import { SubscriptionStatus } from '../components/subscription/SubscriptionStatus';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function SubscriptionPage() {
