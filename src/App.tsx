@@ -1,93 +1,79 @@
-import { useState, lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Auth from './components/Auth';
-import ResetPassword from './components/ResetPassword';
-import Settings from './components/Settings';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import ProgressTab from './components/ProgressTab';
-import TestsTab from './components/TestsTab';
-import ResultsTab from './components/ResultsTab';
-import QuestionBank from './components/QuestionBank';
-import { supabase } from './lib/supabase';
-import { useExamSelection } from './hooks/useExamSelection';
-const LandingPage = lazy(() => import('./components/landing/LandingPage'));
-
-function Dashboard({ isAuthenticated, setIsAuthenticated }: {
-  isAuthenticated: boolean;
-  setIsAuthenticated: (value: boolean) => void;
-}) {
-  const [activeTab, setActiveTab] = useState<'tests' | 'resultats' | 'progression' | 'questions'>('tests');
-  const [showSettings, setShowSettings] = useState(false);
-  const { selectedExamId, setSelectedExamId } = useExamSelection();
-
-  if (!isAuthenticated) {
-    return <Auth onLogin={() => setIsAuthenticated(true)} />;
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onSettingsClick={() => setShowSettings(true)} />
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-      <main className="pt-20 pl-72 pr-8 pb-8">
-        {activeTab === 'tests' && <TestsTab selectedExamId={selectedExamId} setSelectedExamId={setSelectedExamId} />}
-        {activeTab === 'resultats' && <ResultsTab selectedExamId={selectedExamId} setSelectedExamId={setSelectedExamId} />}
-        {activeTab === 'progression' && <ProgressTab selectedExamId={selectedExamId} setSelectedExamId={setSelectedExamId} />}
-        {activeTab === 'questions' && <QuestionBank />}
-      </main>
-      {showSettings && (
-        <Settings
-          onClose={() => setShowSettings(false)}
-        />
-      )}
-    </div>
-  );
-}
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { onAuthStateChange, AuthUser } from './lib/auth';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { Navbar } from './components/layout/Navbar';
+import { LandingPage } from './pages/LandingPage';
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
+import { Pricing } from './pages/Pricing';
+import { Success } from './pages/Success';
+import { Dashboard } from './pages/Dashboard';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-      setLoading(false);
+    const unsubscribe = onAuthStateChange((user) => {
+      setUser(user);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
+    return unsubscribe;
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Chargement...</div>
-      </div>
-    );
-  }
-
   return (
-    <BrowserRouter>
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-xl">Chargement...</div>
-        </div>
-      }>
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar user={user} />
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/app/*" element={
-            isAuthenticated ? <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/auth" />
-          } />
+          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+          <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/success" element={<Success />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/exams" 
+            element={
+              <ProtectedRoute>
+                <ExamList />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/exam/:examId" 
+            element={
+              <ProtectedRoute>
+                <ExamDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/quiz/:categoryId" 
+            element={
+              <ProtectedRoute>
+                <Quiz />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/results/:resultId" 
+            element={
+              <ProtectedRoute>
+                <QuizResults />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
-      </Suspense>
-    </BrowserRouter>
+      </div>
+    </Router>
   );
 }
 
