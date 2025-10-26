@@ -60,13 +60,13 @@ export function Pricing() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <Link
-            to="/"
+          <button
+            onClick={() => navigate(-1)}
             className="inline-flex items-center text-indigo-600 hover:text-indigo-700"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour à l'accueil
-          </Link>
+            Retour
+          </button>
         </div>
 
         <div className="text-center mb-12">
