@@ -16,6 +16,7 @@ import { SuccessPage } from './pages/SuccessPage';
 import { Pricing } from './pages/Pricing';
 import { Success } from './pages/Success';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { PaywallRoute } from './components/auth/PaywallRoute';
 import { supabase } from './lib/supabase';
 import { useExamSelection } from './hooks/useExamSelection';
 import { useAuthStore } from './store/authStore';
@@ -101,13 +102,15 @@ function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/app/*" element={
-                    isAuthenticated ? <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/auth" />
-                  } />
                   <Route path="/subscription" element={
                     <ProtectedRoute>
                       <SubscriptionPage />
                     </ProtectedRoute>
+                  } />
+                  <Route path="/app/*" element={
+                    <PaywallRoute>
+                      <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+                    </PaywallRoute>
                   } />
                 </Routes>
               </>
