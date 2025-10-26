@@ -27,7 +27,7 @@ export function LandingPage() {
               <span className="text-blue-600"> ExamPrep</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Préparez-vous efficacement avec nos QCM interactifs, suivez vos progrès et maximisez vos chances de réussite.
+              Préparez-vous efficacement avec nos quiz interactifs, suivez vos progrès et atteignez vos objectifs académiques.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -52,7 +52,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Pourquoi choisir ExamPrep ?</h2>
-            <p className="text-xl text-gray-600">Des outils puissants pour une préparation optimale</p>
+            <p className="text-xl text-gray-600">Des outils puissants pour maximiser vos chances de réussite</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -60,8 +60,8 @@ export function LandingPage() {
               <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <BookOpen className="h-8 w-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">QCM Interactifs</h3>
-              <p className="text-gray-600">Des milliers de questions organisées par matière et niveau de difficulté.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Quiz Interactifs</h3>
+              <p className="text-gray-600">Des milliers de questions organisées par matière et niveau de difficulté</p>
             </div>
 
             <div className="text-center">
@@ -69,7 +69,7 @@ export function LandingPage() {
                 <Target className="h-8 w-8 text-green-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Suivi des Progrès</h3>
-              <p className="text-gray-600">Analysez vos performances et identifiez vos points faibles.</p>
+              <p className="text-gray-600">Visualisez vos performances et identifiez vos points d'amélioration</p>
             </div>
 
             <div className="text-center">
@@ -77,7 +77,7 @@ export function LandingPage() {
                 <Award className="h-8 w-8 text-purple-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Certifications</h3>
-              <p className="text-gray-600">Obtenez des certificats pour valider vos compétences.</p>
+              <p className="text-gray-600">Obtenez des certificats pour valider vos compétences</p>
             </div>
 
             <div className="text-center">
@@ -85,7 +85,7 @@ export function LandingPage() {
                 <Users className="h-8 w-8 text-orange-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Communauté</h3>
-              <p className="text-gray-600">Échangez avec d'autres étudiants et partagez vos expériences.</p>
+              <p className="text-gray-600">Échangez avec d'autres étudiants et partagez vos expériences</p>
             </div>
           </div>
         </div>
@@ -124,23 +124,23 @@ export function LandingPage() {
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
                 <span className="font-semibold">Marie L.</span>
               </div>
-              <p className="text-gray-600">"Grâce à ExamPrep, j'ai réussi mon concours d'entrée en école d'ingénieur. Les QCM sont très bien conçus !"</p>
+              <p className="text-gray-600">"ExamPrep m'a aidée à réussir mon bac avec mention. Les quiz sont très bien conçus !"</p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-4">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                <span className="font-semibold">Thomas R.</span>
+                <span className="font-semibold">Thomas M.</span>
               </div>
-              <p className="text-gray-600">"Le suivi des progrès m'a permis de cibler mes révisions. Interface intuitive et contenu de qualité."</p>
+              <p className="text-gray-600">"Le suivi des progrès est fantastique. Je peux voir exactement où je dois m'améliorer."</p>
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-4">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                <span className="font-semibold">Sarah M.</span>
+                <span className="font-semibold">Sarah K.</span>
               </div>
-              <p className="text-gray-600">"Excellent outil de préparation ! J'ai pu m'entraîner à mon rythme et réussir mon examen du premier coup."</p>
+              <p className="text-gray-600">"Interface intuitive et contenu de qualité. Je recommande vivement !"</p>
             </div>
           </div>
         </div>
