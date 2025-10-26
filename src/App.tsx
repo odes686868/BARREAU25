@@ -44,14 +44,34 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
   );
 }
 
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { useAuth } from './hooks/useAuth';
+
+// Pages
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
+import { Pricing } from './pages/Pricing';
+import { Success } from './pages/Success';
+
 function App() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
-      setIsLoading(false);
+      setLoading(false);
     });
 
     const {
@@ -63,7 +83,7 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl">Chargement...</div>
@@ -79,17 +99,44 @@ function App() {
         </div>
       }>
         <Routes>
-          <Route path="/" element={
-            isAuthenticated ? <Navigate to="/app" replace /> : <LandingPage />
-          } />
-          <Route path="/auth" element={
-            isAuthenticated ? <Navigate to="/app" replace /> : <Auth onLogin={() => setIsAuthenticated(true)} />
-          } />
-          <Route path="/reset-password" element={<ResetPassword />} />
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/success" element={<Success />} />
+            
+            {/* Protected routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } />
+            <Route path="/exams" element={
+              <ProtectedRoute>
+                <ExamList />
+              </ProtectedRoute>
+            } />
+            <Route path="/quiz/:examId/:categoryId" element={
+              <ProtectedRoute>
+                <Quiz />
+              </ProtectedRoute>
+            } />
+            <Route path="/progress" element={
+              <ProtectedRoute>
+                <Progress />
+              </ProtectedRoute>
+            } />
+            <Route path="/results/:resultId" element={
+              <ProtectedRoute>
+                <Results />
+              </ProtectedRoute>
+            } />
+            
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/app/*" element={
-            isAuthenticated ? <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/auth" replace />
+            isAuthenticated ? <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/auth" />
           } />
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
