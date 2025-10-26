@@ -184,6 +184,48 @@ async function syncCustomerFromStripe(customerId: string) {
       throw new Error('Failed to sync subscription in database');
     }
     console.info(`Successfully synced subscription for customer: ${customerId}`);
+
+    // Update user tier to premium if subscription is active
+    if (subscription.status === 'active') {
+      const { data: customerData } = await supabase
+        .from('stripe_customers')
+        .select('user_id')
+        .eq('customer_id', customerId)
+        .single();
+
+      if (customerData) {
+        const { error: tierError } = await supabase
+          .from('user_tiers')
+          .update({ tier: 'premium', updated_at: new Date().toISOString() })
+          .eq('user_id', customerData.user_id);
+
+        if (tierError) {
+          console.error('Error updating user tier:', tierError);
+        } else {
+          console.info(`Updated user ${customerData.user_id} to premium tier`);
+        }
+      }
+    } else if (['canceled', 'unpaid', 'incomplete_expired'].includes(subscription.status)) {
+      // Downgrade to free tier if subscription is canceled or expired
+      const { data: customerData } = await supabase
+        .from('stripe_customers')
+        .select('user_id')
+        .eq('customer_id', customerId)
+        .single();
+
+      if (customerData) {
+        const { error: tierError } = await supabase
+          .from('user_tiers')
+          .update({ tier: 'free', updated_at: new Date().toISOString() })
+          .eq('user_id', customerData.user_id);
+
+        if (tierError) {
+          console.error('Error downgrading user tier:', tierError);
+        } else {
+          console.info(`Downgraded user ${customerData.user_id} to free tier`);
+        }
+      }
+    }
   } catch (error) {
     console.error(`Failed to sync subscription for customer ${customerId}:`, error);
     throw error;
