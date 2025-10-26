@@ -15,6 +15,7 @@ import { SubscriptionPage } from './pages/SubscriptionPage';
 import { SuccessPage } from './pages/SuccessPage';
 import { Pricing } from './pages/Pricing';
 import { Success } from './pages/Success';
+import { PricingPage } from './pages/PricingPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { PaywallRoute } from './components/auth/PaywallRoute';
 import { supabase } from './lib/supabase';
@@ -100,6 +101,7 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/success" element={<Success />} />
             <Route path="/*" element={
               <>

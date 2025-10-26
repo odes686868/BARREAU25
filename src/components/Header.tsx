@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Scale, User, LogOut, Crown } from 'lucide-react';
+import { Scale, User, LogOut, Crown, CreditCard } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { getProductByPriceId } from '../stripe-config';
+import { SubscriptionStatus } from './SubscriptionStatus';
 
 export function Header() {
   const { user, subscription, signOut } = useAuthStore();
@@ -32,6 +33,7 @@ export function Header() {
           </Link>
         
         <div className="flex items-center space-x-4">
+          <SubscriptionStatus />
           {user && (
             <div className="flex items-center space-x-2 px-3 py-1 bg-indigo-50 rounded-full">
               <Crown className="w-4 h-4 text-indigo-600" />
@@ -43,17 +45,35 @@ export function Header() {
           
           {user ? (
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <User className="w-4 h-4 text-gray-600" />
-                <span className="text-sm text-gray-700">{user.email}</span>
+              <div className="relative group">
+                <button className="flex items-center space-x-2 text-gray-700 hover:text-indigo-600 transition-colors">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">{user.email}</span>
+                </button>
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <Link
+                    to="/pricing"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Forfaits
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Profil
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Déconnexion</span>
-              </button>
             </div>
           ) : (
             <div className="flex items-center space-x-4">
