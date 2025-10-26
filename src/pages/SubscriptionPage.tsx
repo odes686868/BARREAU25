@@ -10,11 +10,11 @@ export function SubscriptionPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <Link
-            to="/"
+            to="/app"
             className="inline-flex items-center text-indigo-600 hover:text-indigo-700 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour à l'accueil
+            Retour aux quizzes
           </Link>
           
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
