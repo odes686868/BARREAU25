@@ -10,14 +10,16 @@ import TestsTab from './components/TestsTab';
 import ResultsTab from './components/ResultsTab';
 import QuestionBank from './components/QuestionBank';
 import { supabase } from './lib/supabase';
+import { useExamSelection } from './hooks/useExamSelection';
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
 
-function Dashboard({ isAuthenticated, setIsAuthenticated }: { 
+function Dashboard({ isAuthenticated, setIsAuthenticated }: {
   isAuthenticated: boolean;
   setIsAuthenticated: (value: boolean) => void;
 }) {
   const [activeTab, setActiveTab] = useState<'tests' | 'resultats' | 'progression' | 'questions'>('tests');
   const [showSettings, setShowSettings] = useState(false);
+  const { selectedExamId, setSelectedExamId } = useExamSelection();
 
   if (!isAuthenticated) {
     return <Auth onLogin={() => setIsAuthenticated(true)} />;
@@ -28,9 +30,9 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
       <Navbar onSettingsClick={() => setShowSettings(true)} />
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <main className="pt-20 pl-72 pr-8 pb-8">
-        {activeTab === 'tests' && <TestsTab />}
-        {activeTab === 'resultats' && <ResultsTab />}
-        {activeTab === 'progression' && <ProgressTab />}
+        {activeTab === 'tests' && <TestsTab selectedExamId={selectedExamId} setSelectedExamId={setSelectedExamId} />}
+        {activeTab === 'resultats' && <ResultsTab selectedExamId={selectedExamId} setSelectedExamId={setSelectedExamId} />}
+        {activeTab === 'progression' && <ProgressTab selectedExamId={selectedExamId} setSelectedExamId={setSelectedExamId} />}
         {activeTab === 'questions' && <QuestionBank />}
       </main>
       {showSettings && (

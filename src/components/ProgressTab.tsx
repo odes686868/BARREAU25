@@ -11,10 +11,14 @@ interface CategoryProgress {
   progressPercentage: number;
 }
 
-export default function ProgressTab() {
+interface ProgressTabProps {
+  selectedExamId: number;
+  setSelectedExamId: (examId: number) => void;
+}
+
+export default function ProgressTab({ selectedExamId, setSelectedExamId }: ProgressTabProps) {
   const [progress, setProgress] = useState<CategoryProgress[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedExamId, setSelectedExamId] = useState<number>(1);
 
   useEffect(() => {
     loadProgress();

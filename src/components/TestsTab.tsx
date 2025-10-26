@@ -13,8 +13,12 @@ interface QuizState {
   categoryId?: number;
 }
 
-export default function TestsTab() {
-  const [selectedExamId, setSelectedExamId] = useState<number>(1);
+interface TestsTabProps {
+  selectedExamId: number;
+  setSelectedExamId: (examId: number) => void;
+}
+
+export default function TestsTab({ selectedExamId, setSelectedExamId }: TestsTabProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [quizState, setQuizState] = useState<QuizState | null>(null);
   const [loading, setLoading] = useState(false);

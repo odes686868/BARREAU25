@@ -24,10 +24,14 @@ interface CategoryStats {
   successRate: number;
 }
 
-export default function ResultsTab() {
+interface ResultsTabProps {
+  selectedExamId: number;
+  setSelectedExamId: (examId: number) => void;
+}
+
+export default function ResultsTab({ selectedExamId, setSelectedExamId }: ResultsTabProps) {
   const [results, setResults] = useState<QuizResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedExamId, setSelectedExamId] = useState<number>(1);
 
   useEffect(() => {
     loadResults();
