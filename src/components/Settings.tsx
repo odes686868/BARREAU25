@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, ChevronDown, ChevronUp, LogOut, RotateCcw, Key, BookOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, ChevronDown, ChevronUp, LogOut, RotateCcw, Key, BookOpen, Crown, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Question } from '../lib/quiz';
@@ -20,6 +20,34 @@ export default function Settings({ onClose }: SettingsProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  useEffect(() => {
+    fetchSubscription();
+  }, []);
+
+  const fetchSubscription = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('stripe_user_subscriptions')
+        .select('*')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching subscription:', error);
+        return;
+      }
+
+      setSubscription(data);
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+    } finally {
+      setLoadingSubscription(false);
+    }
+  };
 
   const loadQuestions = async () => {
     setLoading(true);
@@ -130,6 +158,45 @@ export default function Settings({ onClose }: SettingsProps) {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Veuillez vous reconnecter');
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-subscription`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to cancel subscription');
+      }
+
+      setSuccess('Votre abonnement sera annulé à la fin de la période de facturation actuelle.');
+      await fetchSubscription();
+      setShowCancelConfirm(false);
+    } catch (error: any) {
+      console.error('Error cancelling subscription:', error);
+      setError(error.message || 'Erreur lors de l\'annulation de l\'abonnement');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
@@ -210,6 +277,56 @@ export default function Settings({ onClose }: SettingsProps) {
             )}
           </div>
 
+          {/* Subscription Management Section */}
+          {!loadingSubscription && subscription && subscription.subscription_status === 'active' && (
+            <div className="border rounded-lg overflow-hidden">
+              <button
+                onClick={() => toggleSection('subscription')}
+                className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <Crown size={20} className="text-yellow-500" />
+                  <span className="font-medium">Gérer l'abonnement</span>
+                </div>
+                {expandedSection === 'subscription' ? (
+                  <ChevronUp size={20} className="text-gray-600" />
+                ) : (
+                  <ChevronDown size={20} className="text-gray-600" />
+                )}
+              </button>
+              {expandedSection === 'subscription' && (
+                <div className="p-4 border-t">
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 mb-2">
+                      <strong>Statut:</strong> {subscription.cancel_at_period_end ? 'Annulation prévue' : 'Actif'}
+                    </p>
+                    {subscription.current_period_end && (
+                      <p className="text-sm text-gray-600">
+                        <strong>{subscription.cancel_at_period_end ? 'Se termine le' : 'Renouvelle le'}:</strong>{' '}
+                        {new Date(subscription.current_period_end * 1000).toLocaleDateString('fr-CA')}
+                      </p>
+                    )}
+                  </div>
+
+                  {subscription.cancel_at_period_end ? (
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-sm text-orange-800">
+                        Votre abonnement sera annulé à la fin de la période de facturation.
+                      </p>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowCancelConfirm(true)}
+                      className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Annuler l'abonnement
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Reset Progress Section */}
           <div className="border rounded-lg overflow-hidden">
             <button
@@ -267,6 +384,57 @@ export default function Settings({ onClose }: SettingsProps) {
           )}
         </div>
       </div>
+
+      {/* Cancel Subscription Confirmation Modal */}
+      {showCancelConfirm && subscription && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">
+                Annuler l'abonnement
+              </h3>
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              Êtes-vous sûr de vouloir annuler votre abonnement premium ?
+              Vous conserverez l'accès à toutes les fonctionnalités premium jusqu'à la fin de votre période de facturation actuelle
+              {subscription.current_period_end && (
+                <> ({new Date(subscription.current_period_end * 1000).toLocaleDateString('fr-CA')})</>
+              )}.
+            </p>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                disabled={cancelling}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+              >
+                Garder l'abonnement
+              </button>
+              <button
+                onClick={handleCancelSubscription}
+                disabled={cancelling}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {cancelling ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Annulation...
+                  </>
+                ) : (
+                  'Confirmer l\'annulation'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
