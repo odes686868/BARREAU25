@@ -6,7 +6,7 @@ import ExamSelector from './ExamSelector';
 interface CategoryProgress {
   categoryId: number;
   categoryName: string;
-  totalAttempted: number;
+  totalQuestions: number;
   correctAnswers: number;
   progressPercentage: number;
 }
@@ -26,33 +26,44 @@ export default function ProgressTab({ selectedExamId, setSelectedExamId }: Progr
 
   const loadProgress = async () => {
     try {
-      const { data: progressData, error } = await supabase
-        .from('user_progress')
-        .select('question_id, status, category_id');
-
-      if (error) throw error;
-
       const examCategories = selectedExamId === 1 ? exam1Categories : exam2Categories;
 
-      const categoryProgress = examCategories.map((category) => {
-        const categoryQuestions = progressData?.filter(
-          (p) => p.category_id === category.id
-        ) || [];
+      const categoryProgress = await Promise.all(
+        examCategories.map(async (category) => {
+          const { count: totalQuestions, error: countError } = await supabase
+            .from(category.tableName)
+            .select('*', { count: 'exact', head: true });
 
-        const correctAnswers = categoryQuestions.filter((p) => p.status === 'correct').length;
-        const totalAttempted = categoryQuestions.length;
-        const progressPercentage = totalAttempted > 0
-          ? Math.round((correctAnswers / totalAttempted) * 100)
-          : 0;
+          if (countError) throw countError;
 
-        return {
-          categoryId: category.id,
-          categoryName: category.name,
-          totalAttempted,
-          correctAnswers,
-          progressPercentage,
-        };
-      });
+          const { data: progressData, error: progressError } = await supabase
+            .from('user_progress')
+            .select('question_id, status')
+            .eq('category_id', category.id);
+
+          if (progressError) throw progressError;
+
+          const uniqueCorrectQuestions = new Set(
+            progressData
+              ?.filter((p) => p.status === 'correct')
+              .map((p) => p.question_id) || []
+          );
+
+          const correctAnswers = uniqueCorrectQuestions.size;
+          const total = totalQuestions || 0;
+          const progressPercentage = total > 0
+            ? Math.round((correctAnswers / total) * 100)
+            : 0;
+
+          return {
+            categoryId: category.id,
+            categoryName: category.name,
+            totalQuestions: total,
+            correctAnswers,
+            progressPercentage,
+          };
+        })
+      );
 
       setProgress(categoryProgress);
     } catch (error) {
@@ -87,9 +98,7 @@ export default function ProgressTab({ selectedExamId, setSelectedExamId }: Progr
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-medium text-lg">{categoryProgress.categoryName}</h3>
                 <span className="text-sm text-gray-500">
-                  {categoryProgress.totalAttempted > 0
-                    ? `${categoryProgress.correctAnswers}/${categoryProgress.totalAttempted} correctes`
-                    : 'Aucune question répondue'}
+                  {categoryProgress.correctAnswers}/{categoryProgress.totalQuestions} correctes
                 </span>
               </div>
               <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
