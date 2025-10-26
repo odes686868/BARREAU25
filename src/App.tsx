@@ -36,15 +36,33 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
         {activeTab === 'questions' && <QuestionBank />}
       </main>
       {showSettings && (
-        <Settings
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
           onClose={() => setShowSettings(false)}
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { useAuth } from './hooks/useAuth'
+
+// Pages
         />
       )}
     </div>
   );
 }
+import { Login } from './pages/Login'
+import { Signup } from './pages/Signup'
+import { Pricing } from './pages/Pricing'
+import { Success } from './pages/Success'
 
 function App() {
+  const { loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -77,11 +95,41 @@ function App() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-xl">Chargement...</div>
         </div>
-      }>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/success" element={<Success />} />
+            
+            {/* Protected routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } />
+            <Route path="/exams" element={
+              <ProtectedRoute>
+                <ExamList />
+              </ProtectedRoute>
+            } />
+            <Route path="/quiz/:examId/:categoryId" element={
+              <ProtectedRoute>
+                <Quiz />
+              </ProtectedRoute>
+            } />
+            <Route path="/progress" element={
+              <ProtectedRoute>
+                <Progress />
+              </ProtectedRoute>
+            } />
+            <Route path="/results/:resultId" element={
+              <ProtectedRoute>
+                <Results />
+              </ProtectedRoute>
+            } />
+            
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/app/*" element={
             isAuthenticated ? <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/auth" />
           } />
