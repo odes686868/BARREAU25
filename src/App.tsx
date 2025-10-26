@@ -13,6 +13,8 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { SuccessPage } from './pages/SuccessPage';
+import { Pricing } from './pages/Pricing';
+import { Success } from './pages/Success';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { supabase } from './lib/supabase';
 import { useExamSelection } from './hooks/useExamSelection';
@@ -91,6 +93,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/success" element={<SuccessPage />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/success" element={<Success />} />
             <Route path="/*" element={
               <>
                 <Routes>
