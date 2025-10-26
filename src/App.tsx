@@ -9,8 +9,14 @@ import ProgressTab from './components/ProgressTab';
 import TestsTab from './components/TestsTab';
 import ResultsTab from './components/ResultsTab';
 import QuestionBank from './components/QuestionBank';
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { SubscriptionPage } from './pages/SubscriptionPage';
+import { SuccessPage } from './pages/SuccessPage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { supabase } from './lib/supabase';
 import { useExamSelection } from './hooks/useExamSelection';
+import { useAuthStore } from './store/authStore';
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
 
 function Dashboard({ isAuthenticated, setIsAuthenticated }: {
@@ -47,8 +53,10 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { initializeAuth } = useAuthStore();
 
   useEffect(() => {
+    initializeAuth();
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
       setLoading(false);
@@ -61,7 +69,7 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initializeAuth]);
 
   if (loading) {
     return (
@@ -78,14 +86,30 @@ function App() {
           <div className="text-xl">Chargement...</div>
         </div>
       }>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/app/*" element={
-            isAuthenticated ? <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/auth" />
-          } />
-        </Routes>
+        <div className="min-h-screen bg-gray-50">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/success" element={<SuccessPage />} />
+            <Route path="/*" element={
+              <>
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/app/*" element={
+                    isAuthenticated ? <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/auth" />
+                  } />
+                  <Route path="/subscription" element={
+                    <ProtectedRoute>
+                      <SubscriptionPage />
+                    </ProtectedRoute>
+                  } />
+                </Routes>
+              </>
+            } />
+          </Routes>
+        </div>
       </Suspense>
     </BrowserRouter>
   );
