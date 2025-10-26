@@ -20,6 +20,7 @@ import { PaywallRoute } from './components/auth/PaywallRoute';
 import { supabase } from './lib/supabase';
 import { useExamSelection } from './hooks/useExamSelection';
 import { useAuthStore } from './store/authStore';
+import { useSubscriptionStore } from './store/subscriptionStore';
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
 
 function Dashboard({ isAuthenticated, setIsAuthenticated }: {
@@ -57,6 +58,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const { initialize } = useAuthStore();
+  const { fetchSubscription } = useSubscriptionStore();
 
   useEffect(() => {
     initialize();
@@ -69,6 +71,9 @@ function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      if (session?.user) {
+        fetchSubscription();
+      }
     });
 
     return () => subscription.unsubscribe();

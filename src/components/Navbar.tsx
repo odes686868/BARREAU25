@@ -1,7 +1,8 @@
-import { GraduationCap, Home, Settings, User, LogOut } from 'lucide-react';
+import { GraduationCap, Home, Settings, User, LogOut, CreditCard } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useState } from 'react';
+import { SubscriptionStatus } from './SubscriptionStatus';
 
 interface NavbarProps {
   onSettingsClick: () => void;
@@ -28,12 +29,16 @@ export default function Navbar({ onSettingsClick }: NavbarProps) {
             <Home size={24} className="group-hover:scale-110 transition-transform" />
             <span className="text-sm font-medium">Accueil</span>
           </Link>
+          <Link to="/pricing" className="text-white hover:bg-white/10 px-3 py-2 rounded-lg transition-colors">
+            Tarifs
+          </Link>
           <div className="flex items-center space-x-2">
             <GraduationCap size={32} />
             <span className="text-xl font-bold">Barreau IA</span>
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          <SubscriptionStatus />
           <button
             onClick={onSettingsClick}
             className="hover:bg-white/10 p-2 rounded-lg transition-colors"
@@ -51,6 +56,13 @@ export default function Navbar({ onSettingsClick }: NavbarProps) {
             </button>
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                <Link
+                  to="/pricing"
+                  className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-gray-50 text-left text-gray-700"
+                >
+                  <CreditCard size={18} />
+                  <span>Tarifs</span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center space-x-2 px-4 py-2 hover:bg-gray-50 text-left text-red-600"
