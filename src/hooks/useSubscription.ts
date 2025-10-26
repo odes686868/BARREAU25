@@ -9,12 +9,15 @@ interface SubscriptionData {
   priceId?: string;
   status?: string;
   currentPeriodEnd?: number;
+  tier: 'free' | 'premium';
+  freeTestsRemaining?: number;
 }
 
 export function useSubscription() {
   const { user } = useAuthStore();
   const [subscription, setSubscription] = useState<SubscriptionData>({
-    isActive: false
+    isActive: false,
+    tier: 'free'
   });
   const [loading, setLoading] = useState(true);
 
@@ -29,29 +32,56 @@ export function useSubscription() {
 
   const fetchSubscription = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch user tier
+      const { data: tierData, error: tierError } = await supabase
+        .from('user_tiers')
+        .select('*')
+        .single();
+
+      if (tierError && tierError.code !== 'PGRST116') {
+        console.error('Error fetching tier:', tierError);
+        setSubscription({ isActive: true, tier: 'free', freeTestsRemaining: 3 });
+        setLoading(false);
+        return;
+      }
+
+      // Fetch Stripe subscription
+      const { data: stripeData, error: stripeError } = await supabase
         .from('stripe_user_subscriptions')
         .select('*')
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching subscription:', error);
-        setSubscription({ isActive: false });
-      } else if (data) {
-        const product = getProductByPriceId(data.price_id);
+      const hasActiveStripeSubscription =
+        stripeData && stripeData.subscription_status === 'active';
+
+      if (hasActiveStripeSubscription) {
+        const product = getProductByPriceId(stripeData.price_id);
         setSubscription({
-          isActive: data.subscription_status === 'active',
+          isActive: true,
+          tier: 'premium',
           planName: product?.name,
-          priceId: data.price_id,
-          status: data.subscription_status,
-          currentPeriodEnd: data.current_period_end
+          priceId: stripeData.price_id,
+          status: stripeData.subscription_status,
+          currentPeriodEnd: stripeData.current_period_end
+        });
+      } else if (tierData) {
+        setSubscription({
+          isActive: true,
+          tier: tierData.tier || 'free',
+          freeTestsRemaining: tierData.free_tests_remaining,
+          planName: 'Plan Gratuit'
         });
       } else {
-        setSubscription({ isActive: false });
+        setSubscription({
+          isActive: true,
+          tier: 'free',
+          freeTestsRemaining: 3,
+          planName: 'Plan Gratuit'
+        });
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);
-      setSubscription({ isActive: false });
+      setSubscription({ isActive: true, tier: 'free', freeTestsRemaining: 3 });
     } finally {
       setLoading(false);
     }

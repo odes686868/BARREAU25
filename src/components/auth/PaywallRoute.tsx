@@ -23,9 +23,6 @@ export function PaywallRoute({ children }: PaywallRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!subscription.isActive) {
-    return <Navigate to="/subscription" replace />;
-  }
-
+  // Allow both free and premium users to access
   return <>{children}</>;
 }

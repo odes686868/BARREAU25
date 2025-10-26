@@ -1,42 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Crown, AlertCircle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { getProductByPriceId } from '../../stripe-config';
-
-interface SubscriptionData {
-  subscription_status: string;
-  price_id: string | null;
-  current_period_end: number | null;
-  cancel_at_period_end: boolean;
-}
+import { useSubscription } from '../../hooks/useSubscription';
 
 export function SubscriptionStatus() {
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSubscription();
-  }, []);
-
-  const fetchSubscription = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('stripe_user_subscriptions')
-        .select('subscription_status, price_id, current_period_end, cancel_at_period_end')
-        .maybeSingle();
-
-      if (error) {
-        console.error('Erreur lors de la récupération de l\'abonnement:', error);
-        return;
-      }
-
-      setSubscription(data);
-    } catch (error) {
-      console.error('Erreur lors de la récupération de l\'abonnement:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { subscription, loading } = useSubscription();
 
   if (loading) {
     return (
@@ -52,7 +19,7 @@ export function SubscriptionStatus() {
     );
   }
 
-  if (!subscription || subscription.subscription_status === 'not_started') {
+  if (subscription.tier === 'free') {
     return (
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
         <div className="flex items-center space-x-3">
@@ -68,10 +35,9 @@ export function SubscriptionStatus() {
     );
   }
 
-  const product = subscription.price_id ? getProductByPriceId(subscription.price_id) : null;
-  const isActive = subscription.subscription_status === 'active';
-  const endDate = subscription.current_period_end 
-    ? new Date(subscription.current_period_end * 1000).toLocaleDateString('fr-FR')
+  const isActive = subscription.status === 'active';
+  const endDate = subscription.currentPeriodEnd
+    ? new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString('fr-FR')
     : null;
 
   return (
@@ -88,18 +54,17 @@ export function SubscriptionStatus() {
           <h3 className={`font-medium ${
             isActive ? 'text-green-800' : 'text-red-800'
           }`}>
-            {product?.name || 'Abonnement Premium'}
+            {subscription.planName || 'Abonnement Premium'}
           </h3>
           <div className={`text-sm ${
             isActive ? 'text-green-700' : 'text-red-700'
           }`}>
             <p>
               Statut: {isActive ? 'Actif' : 'Inactif'}
-              {subscription.cancel_at_period_end && ' (Annulation programmée)'}
             </p>
             {endDate && (
               <p>
-                {subscription.cancel_at_period_end ? 'Se termine le' : 'Renouvellement le'}: {endDate}
+                Renouvellement le: {endDate}
               </p>
             )}
           </div>
