@@ -6,6 +6,7 @@
  import { supabase } from '../lib/supabase';
  
  interface Exam {
+ }
 @@ .. @@
            </div>
          </div>
@@ -43,3 +44,6 @@
          {/* Examens disponibles */}
          <div className="grid gap-8">
            {exams.map((exam) => (
+           )
+           )
+           }
