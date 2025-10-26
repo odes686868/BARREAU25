@@ -162,27 +162,7 @@ export default function TestsTab({ selectedExamId, setSelectedExamId }: TestsTab
 
   if (quizState) {
     const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
-
-    if (!currentQuestion) {
-      return (
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <h2 className="text-xl font-bold text-red-800 mb-2">Erreur</h2>
-            <p className="text-red-700">
-              Impossible de charger les questions pour cette catégorie.
-              Questions disponibles: {quizState.questions.length}, Index: {quizState.currentQuestionIndex}
-            </p>
-            <button
-              onClick={() => setQuizState(null)}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-            >
-              Retour
-            </button>
-          </div>
-        </div>
-      );
-    }
-
+    
     return (
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
