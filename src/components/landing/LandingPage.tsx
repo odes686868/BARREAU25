@@ -1,6 +1,5 @@
 import Hero from './Hero';
 import Features from './Features';
-import Pricing from './Pricing';
 import Testimonials from './Testimonials';
 
 export default function LandingPage() {
@@ -9,7 +8,6 @@ export default function LandingPage() {
       <Hero />
       <Features />
       <Testimonials />
-      <Pricing />
     </div>
   );
 }
