@@ -1,10 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useSubscriptionStore } from '../store/subscriptionStore';
 import { SubscriptionCard } from '../components/SubscriptionCard';
 import { STRIPE_PRODUCTS } from '../stripe-config';
 import { supabase } from '../lib/supabase';
+import { ArrowLeft } from 'lucide-react';
 
 export function Pricing() {
   const navigate = useNavigate();
@@ -58,6 +59,16 @@ export function Pricing() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <Link
+            to="/"
+            className="inline-flex items-center text-indigo-600 hover:text-indigo-700"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour à l'accueil
+          </Link>
+        </div>
+
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Choisissez votre plan
