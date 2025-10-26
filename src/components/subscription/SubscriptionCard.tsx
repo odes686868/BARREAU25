@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Crown, Check, Loader2 } from 'lucide-react';
-import { stripeProducts } from '../../stripe-config';
+import { STRIPE_PRODUCTS } from '../../stripe-config';
 import { createCheckoutSession } from '../../lib/stripe';
 
 interface SubscriptionCardProps {
@@ -9,7 +9,7 @@ interface SubscriptionCardProps {
 
 export function SubscriptionCard({ currentPlan }: SubscriptionCardProps) {
   const [loading, setLoading] = useState(false);
-  const premiumProduct = stripeProducts[0]; // Forfait Premium
+  const premiumProduct = STRIPE_PRODUCTS[0]; // Forfait Premium
 
   const handleSubscribe = async () => {
     setLoading(true);
