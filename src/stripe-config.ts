@@ -32,3 +32,7 @@ export const formatPrice = (price: number, currency: string): string => {
   const symbol = currency === 'cad' ? 'C$' : '$';
   return `${symbol}${price.toFixed(2)}`;
 };
+
+export const getProductByPriceId = (priceId: string): StripeProduct | undefined => {
+  return STRIPE_PRODUCTS.find(product => product.priceId === priceId);
+};
