@@ -92,24 +92,39 @@ export default function Settings({ onClose }: SettingsProps) {
   };
 
   const handleResetProgress = async () => {
+    if (!confirm('Êtes-vous sûr de vouloir réinitialiser toute votre progression ? Cette action est irréversible.')) {
+      return;
+    }
+
     setIsResetting(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Non connecté');
+
+      const { error: progressError } = await supabase
         .from('user_progress')
         .delete()
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (progressError) throw progressError;
+
+      const { error: resultsError } = await supabase
+        .from('quiz_results')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (resultsError) throw resultsError;
 
       setSuccess('Progression réinitialisée avec succès');
       setTimeout(() => {
         window.location.reload();
       }, 1500);
-    } catch (err) {
-      setError('Erreur lors de la réinitialisation');
+    } catch (err: any) {
+      console.error('Reset progress error:', err);
+      setError(err.message || 'Erreur lors de la réinitialisation');
     } finally {
       setIsResetting(false);
     }
