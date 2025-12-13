@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, ChevronDown, ChevronUp, LogOut, RotateCcw, Key, BookOpen, Crown, Loader2 } from 'lucide-react';
+import { X, ChevronDown, ChevronUp, LogOut, RotateCcw, Key, BookOpen, Crown, Loader2, Mail } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Question } from '../lib/quiz';
@@ -31,17 +31,41 @@ export default function Settings({ onClose }: SettingsProps) {
 
   const fetchSubscription = async () => {
     try {
-      const { data, error } = await supabase
-        .from('stripe_user_subscriptions')
-        .select('*')
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching subscription:', error);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoadingSubscription(false);
         return;
       }
 
-      setSubscription(data);
+      const { data: customerData, error: customerError } = await supabase
+        .from('stripe_customers')
+        .select('customer_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (customerError || !customerData) {
+        setLoadingSubscription(false);
+        return;
+      }
+
+      const { data: subData, error: subError } = await supabase
+        .from('stripe_subscriptions')
+        .select('*')
+        .eq('customer_id', customerData.customer_id)
+        .maybeSingle();
+
+      if (subError && subError.code !== 'PGRST116') {
+        console.error('Error fetching subscription:', subError);
+        setLoadingSubscription(false);
+        return;
+      }
+
+      if (subData) {
+        setSubscription({
+          ...subData,
+          subscription_status: subData.status
+        });
+      }
     } catch (error) {
       console.error('Error fetching subscription:', error);
     } finally {
@@ -360,7 +384,18 @@ export default function Settings({ onClose }: SettingsProps) {
             )}
           </div>
 
-          {/* Questions Section - Hidden */}
+          {/* Contact Section */}
+          <div className="border rounded-lg overflow-hidden">
+            <div className="p-4 bg-gray-50">
+              <div className="flex items-center space-x-3 mb-2">
+                <Mail size={20} className="text-gray-600" />
+                <span className="font-medium">Besoin d'aide ?</span>
+              </div>
+              <p className="text-sm text-gray-600 ml-8">
+                Contactez-nous : <a href="mailto:barreauia25@gmail.com" className="text-blue-600 hover:underline font-medium">barreauia25@gmail.com</a>
+              </p>
+            </div>
+          </div>
 
           {/* Logout Section */}
           <button

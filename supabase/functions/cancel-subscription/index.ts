@@ -53,16 +53,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch user's subscription
-    const { data: subscriptionData, error: subError } = await supabase
-      .from('stripe_user_subscriptions')
-      .select('subscription_id, subscription_status')
+    // First get the customer_id from stripe_customers
+    const { data: customerData, error: customerError } = await supabase
+      .from('stripe_customers')
+      .select('customer_id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (subError || !subscriptionData) {
+    if (customerError || !customerData) {
       return new Response(
-        JSON.stringify({ error: 'No active subscription found' }),
+        JSON.stringify({ error: 'No customer record found' }),
         {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -70,9 +70,36 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (subscriptionData.subscription_status !== 'active') {
+    // Then get the subscription from stripe_subscriptions
+    const { data: subscriptionData, error: subError } = await supabase
+      .from('stripe_subscriptions')
+      .select('subscription_id, status, cancel_at_period_end')
+      .eq('customer_id', customerData.customer_id)
+      .maybeSingle();
+
+    if (subError || !subscriptionData) {
+      return new Response(
+        JSON.stringify({ error: 'No subscription found' }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    if (subscriptionData.status !== 'active' && subscriptionData.status !== 'trialing') {
       return new Response(
         JSON.stringify({ error: 'Subscription is not active' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    if (subscriptionData.cancel_at_period_end) {
+      return new Response(
+        JSON.stringify({ error: 'Subscription is already set to cancel' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -90,12 +117,12 @@ Deno.serve(async (req) => {
 
     // Update the database
     const { error: updateError } = await supabase
-      .from('stripe_user_subscriptions')
+      .from('stripe_subscriptions')
       .update({
         cancel_at_period_end: true,
         updated_at: new Date().toISOString(),
       })
-      .eq('user_id', user.id);
+      .eq('customer_id', customerData.customer_id);
 
     if (updateError) {
       console.error('Failed to update database:', updateError);
