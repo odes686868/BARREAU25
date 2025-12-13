@@ -12,6 +12,7 @@ import QuestionBank from './components/QuestionBank';
 import DisclaimerTab from './components/DisclaimerTab';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { SuccessPage } from './pages/SuccessPage';
 import { PricingPage } from './pages/PricingPage';
@@ -101,6 +102,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/success" element={<SuccessPage />} />

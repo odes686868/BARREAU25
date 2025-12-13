@@ -65,27 +65,16 @@ export default function Auth({ onLogin }: AuthProps) {
         throw new Error('Veuillez entrer une adresse email');
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/forgot-password`;
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      const data = await response.json();
+      if (error) throw error;
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Une erreur est survenue');
-      }
-
-      setSuccess('✓ Si votre email existe, vous recevrez un lien de réinitialisation dans quelques instants. Vérifiez aussi vos courriers indésirables.');
+      setSuccess('Si votre email existe, vous recevrez un lien de reinitialisation dans quelques instants. Verifiez aussi vos courriers indesirables.');
     } catch (err: any) {
       console.error('Password reset error:', err);
-      setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
+      setError(err.message || 'Une erreur est survenue. Veuillez reessayer.');
     } finally {
       setLoading(false);
     }

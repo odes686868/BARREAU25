@@ -1,59 +1,55 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, ArrowLeft, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
-
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [verifying, setVerifying] = useState(true);
+  const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [tokenValid, setTokenValid] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
-        setError('Lien invalide. Veuillez demander un nouveau lien de réinitialisation.');
-        setVerifying(false);
+    const handleRecovery = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const type = hashParams.get('type');
+
+      if (type === 'recovery' && accessToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: hashParams.get('refresh_token') || '',
+        });
+
+        if (error) {
+          setError('Lien invalide ou expire. Veuillez demander un nouveau lien.');
+          setInitializing(false);
+          return;
+        }
+
+        setSessionReady(true);
+        setInitializing(false);
+        window.history.replaceState(null, '', window.location.pathname);
         return;
       }
 
-      try {
-        const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-reset-token`;
-
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token }),
-        });
-
-        const data = await response.json();
-
-        if (data.valid) {
-          setTokenValid(true);
-        } else {
-          setError('Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.');
-        }
-      } catch (err) {
-        console.error('Token verification error:', err);
-        setError('Erreur lors de la vérification du lien. Veuillez réessayer.');
-      } finally {
-        setVerifying(false);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSessionReady(true);
+      } else {
+        setError('Lien invalide ou expire. Veuillez demander un nouveau lien de reinitialisation.');
       }
+      setInitializing(false);
     };
 
-    verifyToken();
-  }, [token]);
+    handleRecovery();
+  }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,33 +58,20 @@ export default function ResetPassword() {
 
     try {
       if (password.length < 6) {
-        throw new Error('Le mot de passe doit contenir au moins 6 caractères');
+        throw new Error('Le mot de passe doit contenir au moins 6 caracteres');
       }
       if (password !== confirmPassword) {
         throw new Error('Les mots de passe ne correspondent pas');
       }
 
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`;
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          newPassword: password,
-        }),
+      const { error } = await supabase.auth.updateUser({
+        password: password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Une erreur est survenue');
-      }
+      if (error) throw error;
 
       setSuccess(true);
+      await supabase.auth.signOut();
       setTimeout(() => {
         navigate('/auth');
       }, 2000);
@@ -107,7 +90,7 @@ export default function ResetPassword() {
         className="absolute top-6 left-6 flex items-center space-x-2 text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-colors"
       >
         <ArrowLeft size={20} />
-        <span>Retour à la connexion</span>
+        <span>Retour a la connexion</span>
       </Link>
 
       <div className="flex-1 flex items-center justify-center p-8 text-white">
@@ -117,24 +100,24 @@ export default function ResetPassword() {
             <h1 className="text-4xl font-bold">Barreau IA</h1>
           </div>
           <h2 className="text-2xl font-medium mb-6">
-            Réinitialisez votre mot de passe
+            Reinitialisez votre mot de passe
           </h2>
           <p className="text-lg opacity-90">
-            Choisissez un nouveau mot de passe sécurisé pour votre compte.
+            Choisissez un nouveau mot de passe securise pour votre compte.
           </p>
         </div>
       </div>
 
       <div className="w-[600px] bg-white p-12 flex items-center">
         <div className="w-full max-w-md mx-auto">
-          {verifying ? (
+          {initializing ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1e2c4f] mx-auto mb-4"></div>
-              <p className="text-gray-600">Vérification du lien...</p>
+              <p className="text-gray-600">Verification du lien...</p>
             </div>
           ) : (
             <>
-              {error && !tokenValid && (
+              {error && !sessionReady && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 flex items-start gap-3">
                   <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
                   <div>
@@ -143,13 +126,13 @@ export default function ResetPassword() {
                       to="/auth"
                       className="text-sm underline hover:no-underline"
                     >
-                      Retour à la page de connexion
+                      Retour a la page de connexion
                     </Link>
                   </div>
                 </div>
               )}
 
-              {tokenValid && (
+              {sessionReady && (
                 <>
                   {error && (
                     <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 flex items-center gap-2">
@@ -161,7 +144,7 @@ export default function ResetPassword() {
                   {success && (
                     <div className="bg-green-50 text-green-600 p-3 rounded-lg mb-6 flex items-center gap-2">
                       <CheckCircle size={20} />
-                      <span>Mot de passe réinitialisé avec succès ! Redirection...</span>
+                      <span>Mot de passe reinitialise avec succes ! Redirection...</span>
                     </div>
                   )}
 
@@ -178,7 +161,7 @@ export default function ResetPassword() {
                         <input
                           type={showPassword ? 'text' : 'password'}
                           className="w-full px-4 py-2 pr-10 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
-                          placeholder="••••••••"
+                          placeholder="********"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           minLength={6}
@@ -194,7 +177,7 @@ export default function ResetPassword() {
                         </button>
                       </div>
                       <p className="mt-1 text-xs text-gray-500">
-                        Minimum 6 caractères
+                        Minimum 6 caracteres
                       </p>
                     </div>
 
@@ -206,7 +189,7 @@ export default function ResetPassword() {
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           className="w-full px-4 py-2 pr-10 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#1e2c4f]"
-                          placeholder="••••••••"
+                          placeholder="********"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           required
@@ -227,7 +210,7 @@ export default function ResetPassword() {
                       disabled={loading || success}
                       className="w-full bg-[#1e2c4f] text-white py-3 rounded-lg font-medium hover:bg-[#2a3f6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {loading ? 'Chargement...' : 'Réinitialiser le mot de passe'}
+                      {loading ? 'Chargement...' : 'Reinitialiser le mot de passe'}
                     </button>
                   </form>
                 </>
