@@ -64,6 +64,18 @@ function App() {
   const { fetchSubscription } = useSubscriptionStore();
 
   useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const type = hashParams.get('type');
+      if (type === 'recovery' && window.location.pathname !== '/reset-password') {
+        window.location.href = `/reset-password${hash}`;
+        return;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     initialize();
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
