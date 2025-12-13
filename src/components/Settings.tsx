@@ -24,6 +24,7 @@ export default function Settings({ onClose }: SettingsProps) {
   const [loadingSubscription, setLoadingSubscription] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => {
     fetchSubscription();
@@ -143,11 +144,12 @@ export default function Settings({ onClose }: SettingsProps) {
     }
   };
 
-  const handleResetProgress = async () => {
-    if (!confirm('Êtes-vous sûr de vouloir réinitialiser toute votre progression ? Cette action est irréversible.')) {
-      return;
-    }
+  const handleResetProgress = () => {
+    setShowResetConfirm(true);
+  };
 
+  const confirmResetProgress = async () => {
+    setShowResetConfirm(false);
     setIsResetting(true);
     setError(null);
     setSuccess(null);
@@ -464,6 +466,62 @@ export default function Settings({ onClose }: SettingsProps) {
                   </>
                 ) : (
                   'Confirmer l\'annulation'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">
+                Réinitialiser la progression
+              </h3>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-600 mb-3">
+                Êtes-vous sûr de vouloir réinitialiser toute votre progression ?
+              </p>
+              <p className="text-sm text-red-600 font-medium">
+                Cette action est irréversible et effacera :
+              </p>
+              <ul className="mt-2 text-sm text-gray-600 list-disc list-inside space-y-1">
+                <li>Tous vos résultats de quiz</li>
+                <li>Votre progression par catégorie</li>
+                <li>L'historique de vos réponses</li>
+              </ul>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                disabled={isResetting}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmResetProgress}
+                disabled={isResetting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isResetting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Réinitialisation...
+                  </>
+                ) : (
+                  'Confirmer'
                 )}
               </button>
             </div>
