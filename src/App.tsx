@@ -10,6 +10,7 @@ import TestsTab from './components/TestsTab';
 import ResultsTab from './components/ResultsTab';
 import QuestionBank from './components/QuestionBank';
 import DisclaimerTab from './components/DisclaimerTab';
+import DisclaimerAgreement from './components/DisclaimerAgreement';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
@@ -29,7 +30,33 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
 }) {
   const [activeTab, setActiveTab] = useState<'tests' | 'resultats' | 'progression' | 'questions' | 'avertissement'>('tests');
   const [showSettings, setShowSettings] = useState(false);
+  const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useState<boolean | null>(null);
   const { selectedExamId, setSelectedExamId } = useExamSelection();
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (user) {
+      checkDisclaimerAcceptance();
+    }
+  }, [user]);
+
+  const checkDisclaimerAcceptance = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('user_agreements')
+      .select('disclaimer_accepted')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking disclaimer:', error);
+      setHasAcceptedDisclaimer(false);
+      return;
+    }
+
+    setHasAcceptedDisclaimer(data?.disclaimer_accepted ?? false);
+  };
 
   if (!isAuthenticated) {
     return <Auth onLogin={() => setIsAuthenticated(true)} />;
@@ -49,6 +76,12 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
       {showSettings && (
         <Settings
           onClose={() => setShowSettings(false)}
+        />
+      )}
+      {hasAcceptedDisclaimer === false && user && (
+        <DisclaimerAgreement
+          userId={user.id}
+          onAccept={() => setHasAcceptedDisclaimer(true)}
         />
       )}
     </div>
