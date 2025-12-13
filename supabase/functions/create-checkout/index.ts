@@ -1,14 +1,18 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+};
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 
   try {
@@ -20,33 +24,54 @@ serve(async (req) => {
           headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
-    )
+    );
 
-    // Get the session or user object
     const {
       data: { user },
-    } = await supabaseClient.auth.getUser()
+    } = await supabaseClient.auth.getUser();
 
     if (!user) {
-      throw new Error('No user found')
+      return new Response(
+        JSON.stringify({ error: 'User not authenticated' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      );
     }
 
-    const { priceId } = await req.json()
+    const { priceId, successUrl, cancelUrl } = await req.json();
 
     if (!priceId) {
-      throw new Error('Price ID is required')
+      return new Response(
+        JSON.stringify({ error: 'Price ID is required' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
-    // Create Stripe checkout session
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeKey) {
+      return new Response(
+        JSON.stringify({ error: 'Stripe is not configured' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      );
+    }
+
     const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('STRIPE_SECRET_KEY')}`,
+        'Authorization': `Bearer ${stripeKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        'success_url': `${req.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
-        'cancel_url': `${req.headers.get('origin')}/pricing`,
+        'success_url': successUrl || `${req.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
+        'cancel_url': cancelUrl || `${req.headers.get('origin')}/pricing`,
         'payment_method_types[0]': 'card',
         'mode': 'subscription',
         'line_items[0][price]': priceId,
@@ -54,12 +79,19 @@ serve(async (req) => {
         'customer_email': user.email!,
         'metadata[user_id]': user.id,
       }),
-    })
+    });
 
-    const session = await response.json()
+    const session = await response.json();
 
     if (!response.ok) {
-      throw new Error(session.error?.message || 'Failed to create checkout session')
+      console.error('Stripe error:', session);
+      return new Response(
+        JSON.stringify({ error: session.error?.message || 'Failed to create checkout session' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
     return new Response(
@@ -68,14 +100,15 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
-    )
+    );
   } catch (error) {
+    console.error('Checkout error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Internal server error' }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 500,
       }
-    )
+    );
   }
-})
+});
