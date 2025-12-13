@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PricingCard } from '../components/PricingCard';
 import { STRIPE_PRODUCTS } from '../stripe-config';
 import { useAuthStore } from '../store/authStore';
+import { supabase } from '../lib/supabase';
 
 export function PricingPage() {
   const navigate = useNavigate();
@@ -15,25 +16,29 @@ export function PricingPage() {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`, {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session?.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          priceId,
-          successUrl: `${window.location.origin}/success`,
-          cancelUrl: `${window.location.origin}/pricing`,
+          price_id: priceId,
+          success_url: `${window.location.origin}/success`,
+          cancel_url: `${window.location.origin}/pricing`,
+          mode: 'subscription',
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to create checkout session');
+        throw new Error(data.error || 'Failed to create checkout session');
       }
 
-      const { url } = await response.json();
-      window.location.href = url;
+      window.location.href = data.url;
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Erreur lors de la création de la session de paiement. Veuillez réessayer.');
