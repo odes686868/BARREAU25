@@ -157,7 +157,7 @@ export default function Auth({ onLogin }: AuthProps) {
             Préparez-vous efficacement à l'examen du Barreau du Québec
           </h2>
           <blockquote className="text-lg italic opacity-90 bg-white/10 p-6 rounded-lg">
-            "La préparation est la clé du succès. Avec Barreau Study, maximisez
+            "La préparation est la clé du succès. Avec Barreau IA, maximisez
             vos chances de réussite."
           </blockquote>
         </div>
