@@ -77,44 +77,45 @@ export function PricingPage() {
             </p>
           </div>
 
-        <div className="flex justify-center">
-          <div className="max-w-md">
-            {STRIPE_PRODUCTS.map((product) => (
-              <PricingCard
-                key={product.id}
-                product={product}
-                isPopular={true}
-                onSubscribe={handleSubscribe}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-12 text-center">
-          <div className="bg-white rounded-lg p-8 shadow-lg max-w-2xl mx-auto">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              Forfait Gratuit
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Essayez notre plateforme avec un accès limité
-            </p>
-            <ul className="text-left space-y-2 mb-6">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200 flex flex-col">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Forfait Gratuit
+              </h3>
+              <div className="mb-4">
+                <span className="text-4xl font-bold text-gray-900">0$</span>
+              </div>
+              <p className="text-gray-600">
+                Essayez notre plateforme avec un acces limite
+              </p>
+            </div>
+            <ul className="space-y-3 mb-8 flex-grow">
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-gray-400 rounded-full mr-3"></span>
-                1 test de pratique gratuit
+                <span className="text-gray-700">1 test de pratique gratuit</span>
               </li>
               <li className="flex items-center">
                 <span className="w-2 h-2 bg-gray-400 rounded-full mr-3"></span>
-                Accès aux explications de base
+                <span className="text-gray-700">Acces aux explications de base</span>
               </li>
             </ul>
             <button
               onClick={() => navigate('/app')}
-              className="bg-gray-100 text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+              className="w-full bg-gray-100 text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
             >
               Commencer gratuitement
             </button>
           </div>
+
+          {STRIPE_PRODUCTS.map((product) => (
+            <PricingCard
+              key={product.id}
+              product={product}
+              isPopular={true}
+              onSubscribe={handleSubscribe}
+            />
+          ))}
         </div>
         </div>
       </div>
