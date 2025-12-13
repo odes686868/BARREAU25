@@ -12,18 +12,15 @@ export default function Testimonials() {
           {[
             {
               content: "La plateforme m'a permis de structurer ma préparation et d'identifier mes points faibles. J'ai réussi l'examen du premier coup !",
-              author: "Marie Tremblay",
-              role: "Avocate depuis 2024"
+              author: "Florence"
             },
             {
               content: "Les explications détaillées après chaque question m'ont vraiment aidé à comprendre mes erreurs et à progresser rapidement.",
-              author: "Jean-Philippe Dubois",
-              role: "Étudiant en droit"
+              author: "Rosemarie"
             },
             {
               content: "Le suivi de progression est excellent. J'ai pu me concentrer sur les domaines où j'avais le plus de difficultés.",
-              author: "Sophie Bergeron",
-              role: "Avocate depuis 2024"
+              author: "Régis"
             }
           ].map((testimonial, index) => (
             <div
@@ -35,7 +32,6 @@ export default function Testimonials() {
               </blockquote>
               <div className="mt-6 border-t border-gray-100 pt-6">
                 <div className="text-base font-semibold text-gray-900">{testimonial.author}</div>
-                <div className="mt-1 text-sm text-gray-500">{testimonial.role}</div>
               </div>
             </div>
           ))}
