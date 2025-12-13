@@ -9,7 +9,7 @@ const tiers = [
     features: [
       'Accès à toutes les questions',
       'Suivi de progression',
-      'Tests chronométrés',
+      'Préparation ciblée',
       'Explications détaillées',
       'Support par email',
     ],

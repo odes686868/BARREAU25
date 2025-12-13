@@ -1,4 +1,4 @@
-import { BookOpen, BarChart as ChartBar, Clock, CheckCircle, FileText, BookMarked } from 'lucide-react';
+import { BookOpen, BarChart as ChartBar, Target, CheckCircle, FileText, BookMarked } from 'lucide-react';
 
 const features = [
   {
@@ -12,9 +12,9 @@ const features = [
     icon: ChartBar,
   },
   {
-    name: 'Tests chronométrés',
-    description: 'Entraînez-vous dans des conditions réelles avec des tests minutés pour gérer votre temps efficacement.',
-    icon: Clock,
+    name: 'Préparation ciblée',
+    description: 'Réussissez un examen réputé difficile grâce à une préparation structurée et des questions authentiques.',
+    icon: Target,
   },
   {
     name: 'Explications détaillées',

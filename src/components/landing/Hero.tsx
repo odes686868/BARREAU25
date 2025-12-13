@@ -15,7 +15,7 @@ export default function Hero() {
             </h2>
             <p className="mt-6 text-lg leading-8 text-gray-300">
               Maîtrisez les 12 examens du Barreau du Québec avec notre plateforme complète de questions-réponses.
-              Tests chronométrés, suivi de progression et explications détaillées pour maximiser votre réussite.
+              Préparation ciblée, suivi de progression et explications détaillées pour maximiser votre réussite.
             </p>
             <div className="mt-10 flex items-center gap-x-8">
               <Link
@@ -39,7 +39,7 @@ export default function Hero() {
                     'Questions couvrant les 12 examens du Barreau',
                     'Suivi détaillé de votre progression par catégorie',
                     'Explications complètes pour chaque réponse',
-                    'Tests chronométrés pour simuler l\'examen',
+                    'Préparation structurée pour un examen difficile',
                     'Historique complet de vos résultats',
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3">
