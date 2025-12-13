@@ -13,10 +13,6 @@ export default function Hero() {
             <h2 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
               Préparez-vous efficacement à l'examen du Barreau
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-300">
-              Maîtrisez les 12 examens du Barreau du Québec avec notre plateforme complète de questions-réponses.
-              Préparation ciblée, suivi de progression et explications détaillées pour maximiser votre réussite.
-            </p>
             <div className="mt-10 flex items-center gap-x-8">
               <Link
                 to="/auth"
@@ -28,8 +24,8 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center">
-            <div className="relative">
+          <div className="flex flex-col items-center justify-center space-y-6">
+            <div className="relative w-full">
               <div className="absolute -inset-4">
                 <div className="h-full w-full rounded-3xl bg-gradient-to-r from-blue-500 to-purple-500 opacity-10 blur-lg"></div>
               </div>
@@ -48,13 +44,22 @@ export default function Hero() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
 
-                <div className="mt-8 pt-8 border-t border-white/20">
-                  <div className="bg-red-500/20 backdrop-blur-sm rounded-xl p-6 border border-red-400/30">
-                    <p className="text-white text-sm leading-relaxed">
-                      <span className="font-bold text-red-300 text-lg">"Seuls 59 % des candidats</span> de la cohorte 2024-2025 ont réussi l'examen de Droit appliqué à la première tentative."
+            <div className="relative w-full">
+              <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm rounded-2xl p-8 shadow-xl ring-1 ring-amber-400/20 border border-amber-400/20">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <svg className="h-8 w-8 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white text-base leading-relaxed font-medium">
+                      Seuls <span className="text-amber-300 font-bold text-lg">59 % des candidats</span> de la cohorte 2024-2025 ont réussi l'examen de Droit appliqué à la première tentative.
                     </p>
-                    <p className="mt-3 text-white font-semibold">
+                    <p className="mt-4 text-amber-100 font-semibold text-base">
                       Préparez-vous avec nous pour garantir votre succès!
                     </p>
                   </div>
