@@ -1,6 +1,6 @@
-import { BarChart as ChartBar, BookOpen, CheckCircle, Database } from 'lucide-react';
+import { BarChart as ChartBar, BookOpen, CheckCircle, AlertTriangle } from 'lucide-react';
 
-type Tab = 'tests' | 'resultats' | 'progression' | 'questions';
+type Tab = 'tests' | 'resultats' | 'progression' | 'questions' | 'avertissement';
 
 interface SidebarProps {
   activeTab: Tab;
@@ -12,6 +12,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: 'tests', label: 'Tests', icon: BookOpen },
     { id: 'resultats', label: 'Résultats', icon: CheckCircle },
     { id: 'progression', label: 'Progression', icon: ChartBar },
+    { id: 'avertissement', label: 'Avertissement', icon: AlertTriangle },
   ] as const;
 
   return (

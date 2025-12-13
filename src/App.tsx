@@ -9,6 +9,7 @@ import ProgressTab from './components/ProgressTab';
 import TestsTab from './components/TestsTab';
 import ResultsTab from './components/ResultsTab';
 import QuestionBank from './components/QuestionBank';
+import DisclaimerTab from './components/DisclaimerTab';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
@@ -26,7 +27,7 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
   isAuthenticated: boolean;
   setIsAuthenticated: (value: boolean) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'tests' | 'resultats' | 'progression' | 'questions'>('tests');
+  const [activeTab, setActiveTab] = useState<'tests' | 'resultats' | 'progression' | 'questions' | 'avertissement'>('tests');
   const [showSettings, setShowSettings] = useState(false);
   const { selectedExamId, setSelectedExamId } = useExamSelection();
 
@@ -43,6 +44,7 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
         {activeTab === 'resultats' && <ResultsTab selectedExamId={selectedExamId} setSelectedExamId={setSelectedExamId} />}
         {activeTab === 'progression' && <ProgressTab selectedExamId={selectedExamId} setSelectedExamId={setSelectedExamId} />}
         {activeTab === 'questions' && <QuestionBank />}
+        {activeTab === 'avertissement' && <DisclaimerTab />}
       </main>
       {showSettings && (
         <Settings
