@@ -75,7 +75,7 @@ export function SubscriptionStatus() {
           </h3>
           <div className={`text-sm ${textColorLight}`}>
             <p>
-              Statut: {isCancelling ? 'Annulation prevue' : isActive ? 'Actif' : 'Inactif'}
+              Statut: {isCancelling ? 'Annulation prévue' : isActive ? 'Actif' : 'Inactif'}
             </p>
             {endDate && (
               <p>

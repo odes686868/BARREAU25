@@ -31,10 +31,10 @@ export function PricingCard({ product, isPopular = false, onSubscribe }: Pricing
   };
 
   const features = [
-    'Acces illimite aux examens',
+    'Accès illimité aux examens',
     'Tests de pratique sans limite',
-    'Suivi detaille des progres',
-    'Explications completes',
+    'Suivi détaillé des progrès',
+    'Explications complètes',
     'Support prioritaire'
   ];
 
@@ -43,7 +43,7 @@ export function PricingCard({ product, isPopular = false, onSubscribe }: Pricing
       {(isPopular || isPremium) && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
           <span className={`px-4 py-2 rounded-full text-sm font-medium ${isPremium ? 'bg-green-600 text-white' : 'bg-[#1e2c4f] text-white'}`}>
-            {isPremium ? 'Plan actuel' : 'Recommande'}
+            {isPremium ? 'Plan actuel' : 'Recommandé'}
           </span>
         </div>
       )}
@@ -87,7 +87,7 @@ export function PricingCard({ product, isPopular = false, onSubscribe }: Pricing
             Traitement...
           </>
         ) : isPremium ? (
-          'Deja abonne'
+          'Déjà abonné'
         ) : (
           "S'abonner maintenant"
         )}

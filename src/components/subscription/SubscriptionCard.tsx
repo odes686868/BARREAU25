@@ -34,7 +34,7 @@ export function SubscriptionCard() {
   return (
     <div className={`bg-white rounded-2xl shadow-xl border-2 p-8 relative overflow-hidden ${isPremium ? 'border-green-300' : 'border-[#1e2c4f]/20'}`}>
       <div className={`absolute top-0 right-0 px-4 py-2 rounded-bl-lg text-sm font-medium ${isPremium ? 'bg-green-600 text-white' : 'bg-[#1e2c4f] text-white'}`}>
-        {isPremium ? 'Plan actuel' : 'Recommande'}
+        {isPremium ? 'Plan actuel' : 'Recommandé'}
       </div>
 
       <div className="text-center">
@@ -60,19 +60,19 @@ export function SubscriptionCard() {
         <div className="space-y-4 mb-8">
           <div className="flex items-center">
             <Check className="w-5 h-5 text-green-500 mr-3" />
-            <span className="text-gray-700">Acces illimite a tous les examens</span>
+            <span className="text-gray-700">Accès illimité à tous les examens</span>
           </div>
           <div className="flex items-center">
             <Check className="w-5 h-5 text-green-500 mr-3" />
-            <span className="text-gray-700">Questions pratiques illimitees</span>
+            <span className="text-gray-700">Questions pratiques illimitées</span>
           </div>
           <div className="flex items-center">
             <Check className="w-5 h-5 text-green-500 mr-3" />
-            <span className="text-gray-700">Suivi detaille des progres</span>
+            <span className="text-gray-700">Suivi détaillé des progrès</span>
           </div>
           <div className="flex items-center">
             <Check className="w-5 h-5 text-green-500 mr-3" />
-            <span className="text-gray-700">Explications detaillees</span>
+            <span className="text-gray-700">Explications détaillées</span>
           </div>
           <div className="flex items-center">
             <Check className="w-5 h-5 text-green-500 mr-3" />
@@ -97,7 +97,7 @@ export function SubscriptionCard() {
               Redirection...
             </div>
           ) : isPremium ? (
-            'Deja abonne'
+            'Déjà abonné'
           ) : (
             'Commencer maintenant'
           )}

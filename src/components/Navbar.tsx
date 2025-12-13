@@ -40,7 +40,7 @@ export default function Navbar({ onSettingsClick }: NavbarProps) {
                   onClick={() => setShowUserMenu(false)}
                 >
                   <Crown size={18} />
-                  <span>Premium Test</span>
+                  <span>Forfait Premium</span>
                 </Link>
                 <Link
                   to="/pricing"
