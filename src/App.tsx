@@ -17,6 +17,7 @@ import { SubscriptionPage } from './pages/SubscriptionPage';
 import { SuccessPage } from './pages/SuccessPage';
 import { PricingPage } from './pages/PricingPage';
 import { TermsPage } from './pages/TermsPage';
+import { AuthenticationPage } from './pages/AuthenticationPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { PaywallRoute } from './components/auth/PaywallRoute';
 import { supabase } from './lib/supabase';
@@ -117,6 +118,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/authentification" element={<AuthenticationPage />} />
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/terms" element={<TermsPage />} />

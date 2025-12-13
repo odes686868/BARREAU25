@@ -94,7 +94,7 @@ Deno.serve(async (req: Request) => {
       throw insertError;
     }
 
-    const resetUrl = `${req.headers.get('origin') || 'http://localhost:5173'}/reset-password?token=${token}`;
+    const resetUrl = `${req.headers.get('origin') || 'https://barreauia.com'}/authentification?token=${token}`;
 
     console.log('\n\n========================================');
     console.log('PASSWORD RESET URL:', resetUrl);
