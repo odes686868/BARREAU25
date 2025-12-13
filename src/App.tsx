@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Auth from './components/Auth';
 import ResetPassword from './components/ResetPassword';
 import Settings from './components/Settings';
@@ -10,12 +10,12 @@ import TestsTab from './components/TestsTab';
 import ResultsTab from './components/ResultsTab';
 import QuestionBank from './components/QuestionBank';
 import DisclaimerTab from './components/DisclaimerTab';
-import DisclaimerAgreement from './components/DisclaimerAgreement';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { SuccessPage } from './pages/SuccessPage';
 import { PricingPage } from './pages/PricingPage';
+import { TermsPage } from './pages/TermsPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { PaywallRoute } from './components/auth/PaywallRoute';
 import { supabase } from './lib/supabase';
@@ -30,33 +30,7 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
 }) {
   const [activeTab, setActiveTab] = useState<'tests' | 'resultats' | 'progression' | 'questions' | 'avertissement'>('tests');
   const [showSettings, setShowSettings] = useState(false);
-  const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useState<boolean | null>(null);
   const { selectedExamId, setSelectedExamId } = useExamSelection();
-  const { user } = useAuthStore();
-
-  useEffect(() => {
-    if (user) {
-      checkDisclaimerAcceptance();
-    }
-  }, [user]);
-
-  const checkDisclaimerAcceptance = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from('user_agreements')
-      .select('disclaimer_accepted')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error checking disclaimer:', error);
-      setHasAcceptedDisclaimer(false);
-      return;
-    }
-
-    setHasAcceptedDisclaimer(data?.disclaimer_accepted ?? false);
-  };
 
   if (!isAuthenticated) {
     return <Auth onLogin={() => setIsAuthenticated(true)} />;
@@ -76,12 +50,6 @@ function Dashboard({ isAuthenticated, setIsAuthenticated }: {
       {showSettings && (
         <Settings
           onClose={() => setShowSettings(false)}
-        />
-      )}
-      {hasAcceptedDisclaimer === false && user && (
-        <DisclaimerAgreement
-          userId={user.id}
-          onAccept={() => setHasAcceptedDisclaimer(true)}
         />
       )}
     </div>
@@ -137,6 +105,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="/subscription" element={
               <ProtectedRoute>
                 <SubscriptionPage />

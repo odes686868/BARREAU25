@@ -336,13 +336,9 @@ export default function Auth({ onLogin }: AuthProps) {
 
           <p className="mt-8 text-sm text-gray-500 text-center">
             En vous connectant, vous acceptez nos{' '}
-            <a href="#" className="text-[#1e2c4f] hover:underline">
+            <Link to="/terms" className="text-[#1e2c4f] hover:underline">
               Conditions d'utilisation
-            </a>{' '}
-            et notre{' '}
-            <a href="#" className="text-[#1e2c4f] hover:underline">
-              Politique de confidentialité
-            </a>
+            </Link>
           </p>
         </div>
       </div>
