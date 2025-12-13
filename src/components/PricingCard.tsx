@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { StripeProduct } from '../stripe-config';
+import { useSubscription } from '../hooks/useSubscription';
 
 interface PricingCardProps {
   product: StripeProduct;
@@ -11,11 +12,14 @@ interface PricingCardProps {
 
 export function PricingCard({ product, isPopular = false, onSubscribe }: PricingCardProps) {
   const { user } = useAuthStore();
+  const { subscription } = useSubscription();
   const [loading, setLoading] = useState(false);
 
+  const isPremium = subscription.tier === 'premium';
+
   const handleSubscribe = async () => {
-    if (!user) return;
-    
+    if (!user || isPremium) return;
+
     setLoading(true);
     try {
       await onSubscribe(product.priceId);
@@ -27,19 +31,19 @@ export function PricingCard({ product, isPopular = false, onSubscribe }: Pricing
   };
 
   const features = [
-    'Accès illimité aux examens',
+    'Acces illimite aux examens',
     'Tests de pratique sans limite',
-    'Suivi détaillé des progrès',
-    'Explications complètes',
+    'Suivi detaille des progres',
+    'Explications completes',
     'Support prioritaire'
   ];
 
   return (
-    <div className={`relative bg-white rounded-2xl shadow-lg p-8 flex flex-col ${isPopular ? 'ring-2 ring-[#1e2c4f]' : 'border border-gray-200'}`}>
-      {isPopular && (
+    <div className={`relative bg-white rounded-2xl shadow-lg p-8 flex flex-col ${isPremium ? 'ring-2 ring-green-400' : isPopular ? 'ring-2 ring-[#1e2c4f]' : 'border border-gray-200'}`}>
+      {(isPopular || isPremium) && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <span className="bg-[#1e2c4f] text-white px-4 py-2 rounded-full text-sm font-medium">
-            Recommande
+          <span className={`px-4 py-2 rounded-full text-sm font-medium ${isPremium ? 'bg-green-600 text-white' : 'bg-[#1e2c4f] text-white'}`}>
+            {isPremium ? 'Plan actuel' : 'Recommande'}
           </span>
         </div>
       )}
@@ -68,9 +72,11 @@ export function PricingCard({ product, isPopular = false, onSubscribe }: Pricing
 
       <button
         onClick={handleSubscribe}
-        disabled={loading || !user}
+        disabled={loading || !user || isPremium}
         className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
-          isPopular
+          isPremium
+            ? 'bg-green-100 text-green-700 cursor-not-allowed'
+            : isPopular
             ? 'bg-[#1e2c4f] text-white hover:bg-[#2a3f6f] disabled:bg-[#1e2c4f]/60'
             : 'bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:bg-gray-50'
         } disabled:cursor-not-allowed flex items-center justify-center`}
@@ -80,12 +86,14 @@ export function PricingCard({ product, isPopular = false, onSubscribe }: Pricing
             <Loader2 className="w-4 h-4 animate-spin mr-2" />
             Traitement...
           </>
+        ) : isPremium ? (
+          'Deja abonne'
         ) : (
           "S'abonner maintenant"
         )}
       </button>
 
-      {!user && (
+      {!user && !isPremium && (
         <p className="text-sm text-gray-500 mt-2 text-center">
           Connectez-vous pour vous abonner
         </p>
