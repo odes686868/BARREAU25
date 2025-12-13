@@ -1,9 +1,10 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { PricingCard } from '../components/PricingCard';
 import { STRIPE_PRODUCTS } from '../stripe-config';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
+import { GraduationCap, ArrowLeft } from 'lucide-react';
 
 export function PricingPage() {
   const navigate = useNavigate();
@@ -46,16 +47,35 @@ export function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Choisissez votre forfait
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Accédez à tous nos examens de pratique et maximisez vos chances de réussite
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-[#1e2c4f] text-white p-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <Link to="/" className="flex items-center space-x-3">
+            <GraduationCap size={32} />
+            <span className="text-xl font-bold">Barreau IA</span>
+          </Link>
+          {user && (
+            <button
+              onClick={() => navigate('/app')}
+              className="flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full hover:bg-white/20 transition-colors"
+            >
+              <ArrowLeft size={18} />
+              <span>Retour au tableau de bord</span>
+            </button>
+          )}
         </div>
+      </nav>
+
+      <div className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Choisissez votre forfait
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Accédez à tous nos examens de pratique et maximisez vos chances de réussite
+            </p>
+          </div>
 
         <div className="flex justify-center">
           <div className="max-w-md">
@@ -89,12 +109,13 @@ export function PricingPage() {
               </li>
             </ul>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/app')}
               className="bg-gray-100 text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
             >
               Commencer gratuitement
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
