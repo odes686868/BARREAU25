@@ -11,7 +11,7 @@ export function SubscriptionPage() {
         <div className="mb-8">
           <Link
             to="/app"
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-700 mb-4"
+            className="inline-flex items-center text-[#1e2c4f] hover:text-[#2a3f6f] mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour aux quizzes

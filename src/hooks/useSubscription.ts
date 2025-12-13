@@ -9,6 +9,7 @@ interface SubscriptionData {
   priceId?: string;
   status?: string;
   currentPeriodEnd?: number;
+  cancelAtPeriodEnd?: boolean;
   tier: 'free' | 'premium';
   freeTestsRemaining?: number;
 }
@@ -62,7 +63,8 @@ export function useSubscription() {
           planName: product?.name,
           priceId: stripeData.price_id,
           status: stripeData.subscription_status,
-          currentPeriodEnd: stripeData.current_period_end
+          currentPeriodEnd: stripeData.current_period_end,
+          cancelAtPeriodEnd: stripeData.cancel_at_period_end
         });
       } else if (tierData) {
         setSubscription({
