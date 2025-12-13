@@ -9,9 +9,9 @@ export default function LandingPage() {
     <div className="bg-white">
       <Header />
       <Hero />
-      <Testimonials />
-      <PricingSection />
       <Features />
+      <PricingSection />
+      <Testimonials />
     </div>
   );
 }
