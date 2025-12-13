@@ -14,8 +14,8 @@ export default function Hero() {
               Préparez-vous efficacement à l'examen du Barreau
             </h2>
             <p className="mt-6 text-lg leading-8 text-gray-300">
-              Une plateforme d'apprentissage conçue spécifiquement pour les futurs avocats du Québec.
-              Maximisez vos chances de réussite avec notre système intelligent de préparation.
+              Maîtrisez les 12 examens du Barreau du Québec avec notre plateforme complète de questions-réponses.
+              Tests chronométrés, suivi de progression et explications détaillées pour maximiser votre réussite.
             </p>
             <div className="mt-10 flex items-center gap-x-8">
               <Link
@@ -36,11 +36,11 @@ export default function Hero() {
               <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl p-8 shadow-2xl ring-1 ring-white/10">
                 <div className="space-y-6">
                   {[
-                    'Plus de 1000 questions pratiques',
-                    'Suivi détaillé de votre progression',
-                    'Explications détaillées pour chaque réponse',
-                    'Mode d\'apprentissage personnalisé',
-                    'Mise à jour régulière du contenu',
+                    'Questions couvrant les 12 examens du Barreau',
+                    'Suivi détaillé de votre progression par catégorie',
+                    'Explications complètes pour chaque réponse',
+                    'Tests chronométrés pour simuler l\'examen',
+                    'Historique complet de vos résultats',
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3">
                       <CheckCircle className="h-6 w-6 text-green-400" />

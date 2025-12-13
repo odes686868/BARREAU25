@@ -1,35 +1,35 @@
-import { Brain, BarChart as ChartBar, Clock, BookOpen, Target, Users } from 'lucide-react';
+import { BookOpen, BarChart as ChartBar, Clock, CheckCircle, FileText, BookMarked } from 'lucide-react';
 
 const features = [
   {
-    name: 'Apprentissage adaptatif',
-    description: 'Notre système s\'adapte à votre niveau et à vos besoins pour optimiser votre préparation.',
-    icon: Brain,
+    name: 'Banque de questions complète',
+    description: 'Accédez à des centaines de questions réparties sur 12 examens couvrant tous les domaines du Barreau.',
+    icon: BookOpen,
   },
   {
-    name: 'Suivi de progression',
-    description: 'Visualisez votre évolution et identifiez les domaines nécessitant plus d\'attention.',
+    name: 'Suivi de progression détaillé',
+    description: 'Visualisez votre évolution par catégorie et identifiez les domaines nécessitant plus d\'attention.',
     icon: ChartBar,
   },
   {
     name: 'Tests chronométrés',
-    description: 'Préparez-vous aux conditions réelles de l\'examen avec nos tests minutés.',
+    description: 'Entraînez-vous dans des conditions réelles avec des tests minutés pour gérer votre temps efficacement.',
     icon: Clock,
   },
   {
-    name: 'Contenu à jour',
-    description: 'Accédez à du contenu régulièrement mis à jour reflétant les dernières exigences du Barreau.',
-    icon: BookOpen,
+    name: 'Explications détaillées',
+    description: 'Comprenez vos erreurs grâce à des explications complètes pour chaque question.',
+    icon: CheckCircle,
   },
   {
-    name: 'Objectifs personnalisés',
-    description: 'Définissez vos objectifs et suivez votre progression vers leur réalisation.',
-    icon: Target,
+    name: 'Historique des résultats',
+    description: 'Consultez tous vos résultats passés et suivez votre amélioration au fil du temps.',
+    icon: FileText,
   },
   {
-    name: 'Communauté d\'entraide',
-    description: 'Rejoignez une communauté d\'étudiants partageant le même objectif.',
-    icon: Users,
+    name: 'Examens par catégorie',
+    description: 'Pratiquez par section spécifique ou testez vos connaissances sur l\'ensemble du curriculum.',
+    icon: BookMarked,
   },
 ];
 
