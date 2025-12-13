@@ -52,16 +52,26 @@ Deno.serve(async (req: Request) => {
 
     const tokenHash = await hashToken(token);
 
-    // Find matching token
     const { data: resetToken, error: fetchError } = await supabase
       .from('password_reset_tokens')
       .select('*')
       .eq('token_hash', tokenHash)
       .eq('used', false)
       .gt('expires_at', new Date().toISOString())
-      .single();
+      .maybeSingle();
 
-    if (fetchError || !resetToken) {
+    if (fetchError) {
+      console.error('Error fetching token:', fetchError);
+      return new Response(
+        JSON.stringify({ valid: false, error: "Error verifying token" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!resetToken) {
       return new Response(
         JSON.stringify({ 
           valid: false, 

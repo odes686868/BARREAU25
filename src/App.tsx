@@ -13,8 +13,6 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { SuccessPage } from './pages/SuccessPage';
-import { Pricing } from './pages/Pricing';
-import { Success } from './pages/Success';
 import { PricingPage } from './pages/PricingPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { PaywallRoute } from './components/auth/PaywallRoute';
@@ -97,30 +95,22 @@ function App() {
       }>
         <div className="min-h-screen bg-gray-50">
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/success" element={<SuccessPage />} />
-            <Route path="/pricing" element={<Pricing />} />
             <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/success" element={<Success />} />
-            <Route path="/*" element={
-              <>
-                <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/auth" element={<Auth onLogin={() => setIsAuthenticated(true)} />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/subscription" element={
-                    <ProtectedRoute>
-                      <SubscriptionPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/app/*" element={
-                    <PaywallRoute>
-                      <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
-                    </PaywallRoute>
-                  } />
-                </Routes>
-              </>
+            <Route path="/subscription" element={
+              <ProtectedRoute>
+                <SubscriptionPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/app/*" element={
+              <PaywallRoute>
+                <Dashboard isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+              </PaywallRoute>
             } />
           </Routes>
         </div>

@@ -32,8 +32,6 @@ Deno.serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
-    console.log('Resend API Key exists:', !!resendApiKey);
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -103,7 +101,16 @@ Deno.serve(async (req: Request) => {
       console.log('PASSWORD RESET URL:', resetUrl);
       console.log('FOR EMAIL:', email);
       console.log('========================================\n\n');
-      throw new Error('RESEND_API_KEY not configured');
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "If an account exists, a reset email has been sent"
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     const emailResponse = await fetch('https://api.resend.com/emails', {
@@ -115,16 +122,16 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         from: 'Barreau IA <onboarding@resend.dev>',
         to: email,
-        subject: 'Réinitialisation de votre mot de passe',
+        subject: 'Reinitialisation de votre mot de passe',
         html: `
-          <h2>Réinitialisation de mot de passe</h2>
-          <p>Vous avez demandé à réinitialiser votre mot de passe pour Barreau IA.</p>
-          <p>Cliquez sur le lien ci-dessous pour définir un nouveau mot de passe :</p>
-          <p><a href="${resetUrl}" style="background-color: #1e2c4f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Réinitialiser mon mot de passe</a></p>
+          <h2>Reinitialisation de mot de passe</h2>
+          <p>Vous avez demande a reinitialiser votre mot de passe pour Barreau IA.</p>
+          <p>Cliquez sur le lien ci-dessous pour definir un nouveau mot de passe :</p>
+          <p><a href="${resetUrl}" style="background-color: #1e2c4f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Reinitialiser mon mot de passe</a></p>
           <p>Ce lien expirera dans 15 minutes.</p>
-          <p>Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.</p>
+          <p>Si vous n'avez pas demande cette reinitialisation, vous pouvez ignorer cet email.</p>
           <hr style="margin: 20px 0;" />
-          <p style="font-size: 12px; color: #666;">Barreau IA - Préparation à l'examen du Barreau du Québec</p>
+          <p style="font-size: 12px; color: #666;">Barreau IA - Preparation a l'examen du Barreau du Quebec</p>
         `,
       }),
     });

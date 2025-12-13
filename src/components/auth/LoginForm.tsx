@@ -26,7 +26,7 @@ export function LoginForm() {
         setMessage({ type: 'error', text: error.message });
       } else {
         setMessage({ type: 'success', text: 'Connexion réussie!' });
-        navigate('/');
+        navigate('/app');
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Une erreur inattendue s\'est produite' });

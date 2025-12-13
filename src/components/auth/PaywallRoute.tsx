@@ -20,7 +20,7 @@ export function PaywallRoute({ children }: PaywallRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   // Allow both free and premium users to access
