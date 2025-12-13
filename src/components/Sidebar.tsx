@@ -8,17 +8,16 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
-  const tabs = [
+  const mainTabs = [
     { id: 'tests', label: 'Tests', icon: BookOpen },
     { id: 'resultats', label: 'Résultats', icon: CheckCircle },
     { id: 'progression', label: 'Progression', icon: ChartBar },
-    { id: 'avertissement', label: 'Avertissement', icon: AlertTriangle },
   ] as const;
 
   return (
-    <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white shadow-lg p-6">
-      <div className="space-y-2">
-        {tabs.map((tab) => {
+    <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white shadow-lg p-6 flex flex-col">
+      <div className="space-y-2 flex-1">
+        {mainTabs.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
@@ -35,6 +34,20 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
             </button>
           );
         })}
+      </div>
+
+      <div className="pt-4 border-t border-gray-100">
+        <button
+          onClick={() => onTabChange('avertissement')}
+          className={`w-full flex items-center space-x-2 px-3 py-2 rounded-md transition-colors text-sm ${
+            activeTab === 'avertissement'
+              ? 'bg-gray-100 text-gray-700'
+              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          <AlertTriangle size={16} />
+          <span>Avertissement</span>
+        </button>
       </div>
     </div>
   );
