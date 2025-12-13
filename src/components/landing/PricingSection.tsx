@@ -1,4 +1,4 @@
-import { Check, Crown, AlertCircle } from 'lucide-react';
+import { Check, Crown, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function PricingSection() {
@@ -19,7 +19,7 @@ export default function PricingSection() {
           <div className="relative bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-8">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-6">
-                <AlertCircle className="w-8 h-8 text-gray-600" />
+                <Gift className="w-8 h-8 text-gray-600" />
               </div>
 
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
