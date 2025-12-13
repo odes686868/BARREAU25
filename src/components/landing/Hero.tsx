@@ -36,7 +36,7 @@ export default function Hero() {
               <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl p-8 shadow-2xl ring-1 ring-white/10">
                 <div className="space-y-6">
                   {[
-                    'Questions couvrant les 12 examens du Barreau',
+                    'Questions couvrant les 12 sections du secteur Droit appliqué',
                     'Suivi détaillé de votre progression par catégorie',
                     'Explications complètes pour chaque réponse',
                     'Préparation structurée pour un examen difficile',
@@ -47,6 +47,17 @@ export default function Hero() {
                       <span className="text-white">{feature}</span>
                     </div>
                   ))}
+                </div>
+
+                <div className="mt-8 pt-8 border-t border-white/20">
+                  <div className="bg-red-500/20 backdrop-blur-sm rounded-xl p-6 border border-red-400/30">
+                    <p className="text-white text-sm leading-relaxed">
+                      <span className="font-bold text-red-300 text-lg">"Seuls 59 % des candidats</span> de la cohorte 2024-2025 ont réussi l'examen de Droit appliqué à la première tentative."
+                    </p>
+                    <p className="mt-3 text-white font-semibold">
+                      Préparez-vous avec nous pour garantir votre succès!
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
