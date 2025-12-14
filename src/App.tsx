@@ -18,6 +18,7 @@ import { SuccessPage } from './pages/SuccessPage';
 import { PricingPage } from './pages/PricingPage';
 import { TermsPage } from './pages/TermsPage';
 import { AuthenticationPage } from './pages/AuthenticationPage';
+import { MaintenancePage } from './pages/MaintenancePage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { PaywallRoute } from './components/auth/PaywallRoute';
 import { supabase } from './lib/supabase';
@@ -25,6 +26,8 @@ import { useExamSelection } from './hooks/useExamSelection';
 import { useAuthStore } from './store/authStore';
 import { useSubscriptionStore } from './store/subscriptionStore';
 const LandingPage = lazy(() => import('./components/landing/LandingPage'));
+
+const MAINTENANCE_MODE = true;
 
 function Dashboard({ isAuthenticated, setIsAuthenticated }: {
   isAuthenticated: boolean;
@@ -101,6 +104,10 @@ function App() {
         <div className="text-xl">Chargement...</div>
       </div>
     );
+  }
+
+  if (MAINTENANCE_MODE) {
+    return <MaintenancePage />;
   }
 
   return (
