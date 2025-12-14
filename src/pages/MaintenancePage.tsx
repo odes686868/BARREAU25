@@ -15,12 +15,12 @@ export function MaintenancePage() {
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-4">
-            Maintenance en cours
+            Site en maintenance
           </h1>
 
           <p className="text-blue-100 text-lg text-center mb-8 leading-relaxed">
-            Nous effectuons actuellement des travaux de maintenance pour améliorer votre expérience.
-            Le site sera de retour sous peu.
+            Le site est actuellement en maintenance indéfiniment.
+            Nous vous remercions de votre compréhension.
           </p>
 
           <div className="bg-white/5 rounded-xl p-6 mb-8 border border-white/10">
@@ -29,9 +29,9 @@ export function MaintenancePage() {
                 <Clock className="w-6 h-6 text-blue-300 mt-1" />
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-2">Durée estimée</h3>
+                <h3 className="text-white font-semibold mb-2">Statut</h3>
                 <p className="text-blue-200 text-sm">
-                  Nous travaillons à rétablir le service dès que possible. Merci de votre patience.
+                  Le service est suspendu pour une durée indéterminée. Merci de votre patience.
                 </p>
               </div>
             </div>
